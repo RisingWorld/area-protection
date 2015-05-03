@@ -1,0 +1,9 @@
+<Lua-Script>
+	<Name>AreaProtection 1.7</Name>
+	<Description>A script used to define and protect areas</Description>
+	<File>areapro.lua</File>
+	<Author>KingGenius</Author>
+	<Team>JIW-Games</Team>
+	<Website>https://www.rising-world.net</Website>
+	<License>MIT</License>
+</Lua-Script>
