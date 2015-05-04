@@ -1,0 +1,9 @@
+[submodule "table-ext"]
+	path = table-ext
+	url = https://github.com/RisingWorld/table-ext
+[submodule "command-parser"]
+	path = command-parser
+	url = https://github.com/RisingWorld/command-parser
+[submodule "i18n"]
+	path = i18n
+	url = https://github.com/RisingWorld/i18n

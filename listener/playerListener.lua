@@ -5,52 +5,59 @@
 -- so it's useless to display anything on the players screen.
 -- @param event The event object. Cancel the event to prevent the player to connect
 function onPlayerConnect(event)
-	local label = Gui:createLabel("", 0.05, 0.135);
+	local label;
+
+	-- current area label
+	label = Gui:createLabel("", 0.05, 0.135);
 	label:setFontsize(19);
+	label:setFontColor(0xFFBE1EFF); -- orange, opaque
+	label:setPivot(0);  -- left aligned
+	label:setVisible(false);
+	event.player:addGuiElement(label);
+	event.player:setAttribute("areaLabel", label);
 	event.player:setAttribute("areas", {});
 	event.player:setAttribute("areasVisible", false);
-	event.player:setAttribute("areaLabel", label);
+
+	-- selection status label
+	label = Gui:createLabel("", 0.05, 0.20);
+	label:setFontsize(19);
+	label:setFontColor(0xFFFF00FF); -- yellow, opaque
+	label:setPivot(0);  -- left aligned
+	label:setVisible(false);
 	event.player:addGuiElement(label);
+	event.player:setAttribute("areaStateLabel", label);
+
 end
-addEvent("PlayerConnect", onPlayerConnect);
+--addEvent("PlayerConnect", onPlayerConnect);
+
 
 --- Player spawn event.
 -- This event is triggered when a player spawns the first (!) time. It is triggered
 -- after the loadingscreen of the player disappears, so this is the right moment to
 -- display some information on the player screen for example.
 -- @param event The event object
-function onPlayerSpawn(event)
-	-- Creates a new GUI element (label) displaying the servername on the player's screen
-	local label = Gui:createLabel("Welcome to ".. server:getServerName(), 0.98, 0.135);
-	label:setFontColor(0x0066FFFF);
-	label:setFontsize(26);
-	label:setPivot(1);
-	event.player:addGuiElement(label);
-	-- Creates a new timer which triggers the provided function after the given amount of time
-	setTimer(function()
-		event.player:removeGuiElement(label);
-		Gui:destroyElement(label);
-	end, 5, 1);
-end
-addEvent("PlayerSpawn", onPlayerSpawn);
+--function onPlayerSpawn(event)
+--end
+--addEvent("PlayerSpawn", onPlayerSpawn);
+
+
+--- Player respawn event.
+-- This event is called when a player requests to respawn (when pressing the "respawn"-button
+-- in the gameover screen).
+-- @param event The event object. Cancel the event to prevent the player from respawning
+--function onPlayerRespawn(event)
+--end
+--addEvent("PlayerRespawn", onPlayerRespawn);
+
 
 --- Player change position event (frequently called event!)
 -- This event is called everytime the player changes his position.
 -- @param event The event object. Cancel the event to teleport the player back to his old position
 function onPlayerChangePosition(event)
-	if areaLoaded ~= true or groupLoaded ~= true then 
-		return; 
-	end
-	
 	local areaID = event.player:getAttribute("areaID");
 	local playerAreas = event.player:getAttribute("areas");
 	if areaID ~= nil then
-		if areas[areaID] == nil then
-			event.player:setAttribute("areaID", nil);
-			return;
-		end
-		
-		if AreaUtils:isPointInArea3D(event.player:getPosition(), areas[areaID]["startChunkpositionX"], areas[areaID]["startChunkpositionY"], areas[areaID]["startChunkpositionZ"], areas[areaID]["startBlockpositionX"], areas[areaID]["startBlockpositionY"], areas[areaID]["startBlockpositionZ"], areas[areaID]["endChunkpositionX"], areas[areaID]["endChunkpositionY"], areas[areaID]["endChunkpositionZ"], areas[areaID]["endBlockpositionX"], areas[areaID]["endBlockpositionY"], areas[areaID]["endBlockpositionZ"]) == false	then
+		if AreaUtils:isPointInArea3D(event.player:getPlayerPosition(), areas[areaID]["startChunkpositionX"], areas[areaID]["startChunkpositionY"], areas[areaID]["startChunkpositionZ"], areas[areaID]["startBlockpositionX"], areas[areaID]["startBlockpositionY"], areas[areaID]["startBlockpositionZ"], areas[areaID]["endChunkpositionX"], areas[areaID]["endChunkpositionY"], areas[areaID]["endChunkpositionZ"], areas[areaID]["endBlockpositionX"], areas[areaID]["endBlockpositionY"], areas[areaID]["endBlockpositionZ"]) == false	then
 			local group = event.player:getAttribute("areaGroup");
 			if group["CanLeave"] == false then
 				event:setCancel(true);
@@ -63,7 +70,7 @@ function onPlayerChangePosition(event)
 					if #playerAreas ~= 0 then
 						if areas[playerAreas[#playerAreas]] ~= nil then
 							event.player:setAttribute("areaID", playerAreas[#playerAreas]);
-							local group = areas[playerAreas[#playerAreas]]["rights"][event.player:getDBID()];
+							local group = areas[playerAreas[#playerAreas]]["rights"][event.player:getPlayerDBID()];
 							if group == nil then
 								group = defaultGroup;
 							end
@@ -82,20 +89,20 @@ function onPlayerChangePosition(event)
 				end
 			end
 		else
-			local group = areas[areaID]["rights"][event.player:getDBID()];
+			local group = areas[areaID]["rights"][event.player:getPlayerDBID()];
 			if group == nil then
 				group = defaultGroup;
 			end
-			event.player:setAttribute("areaGroup", group);	
-		end	
+			event.player:setAttribute("areaGroup", group);
+		end
 	end
 	for key,value in pairs(areas) do
-		if AreaUtils:isPointInArea3D(event.player:getPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
-			local group = value["rights"][event.player:getDBID()];
+		if AreaUtils:isPointInArea3D(event.player:getPlayerPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
+			local group = value["rights"][event.player:getPlayerDBID()];
 			if group == nil then
 				group = defaultGroup;
 			end
-			
+
 			if group["CanEnter"] == false then
 				event:setCancel(true);
 				return;
@@ -114,20 +121,20 @@ function onPlayerChangePosition(event)
 	end
 	event.player:setAttribute("areas", playerAreas);
 end
-addEvent("PlayerChangePosition", onPlayerChangePosition);
+--addEvent("PlayerChangePosition", onPlayerChangePosition);
 
 --- Player enter worldpart event.
 -- This event is triggered when the player enters a new worldpart (a worldpart is defined by 64x64 chunks).
 -- If worldpartwise precision is sufficient, prefer this event over the PlayerChangePosition or PlayerEnterChunk-
 -- event to save performance. Useful for example when you want to restrict the world.
 -- @param event The event object. Cancel the event to teleport the player back to his old position
-function onPlayerEnterWorldpart(event)
+--function onPlayerEnterWorldpart(event)
 	-- Example how to restrict the worldsize to a single worldpart
 	--if event.newWorldpart.x ~= 0 or event.newWorldpart.z ~= 0 then
 	--	event:setCancel(true);
 	--end
-end
-addEvent("PlayerEnterWorldpart", onPlayerEnterWorldpart);
+--end
+--addEvent("PlayerEnterWorldpart", onPlayerEnterWorldpart);
 
 --- Player block place event.
 -- This event is triggered when the player places a block.
@@ -141,7 +148,7 @@ function onPlayerBlockPlace(event)
 		end
 	end
 end
-addEvent("PlayerBlockPlace", onPlayerBlockPlace);
+--addEvent("PlayerBlockPlace", onPlayerBlockPlace);
 
 --- Player destroy block event.
 -- This event is triggered when the player destroys a block.
@@ -156,7 +163,7 @@ function onPlayerBlockDestroy(event)
 		end
 	end
 end
-addEvent("PlayerBlockDestroy", onPlayerBlockDestroy);
+--addEvent("PlayerBlockDestroy", onPlayerBlockDestroy);
 
 --- Player place construction event.
 -- This event is triggered when the player places an construction element (e.g. wooden plank).
@@ -171,7 +178,7 @@ function onPlayerConstructionPlace(event)
 		end
 	end
 end
-addEvent("PlayerConstructionPlace", onPlayerConstructionPlace);
+--addEvent("PlayerConstructionPlace", onPlayerConstructionPlace);
 
 --- Player remove construction event.
 -- This event is triggered when the player deconstructs a construction element (e.g. wooden plank).
@@ -186,7 +193,7 @@ function onPlayerConstructionRemove(event)
 		end
 	end
 end
-addEvent("PlayerConstructionRemove", onPlayerConstructionRemove);
+--addEvent("PlayerConstructionRemove", onPlayerConstructionRemove);
 
 --- Player destroy construction event.
 -- This event is triggered when the player destroys a construction element (e.g. wooden plank).
@@ -201,7 +208,7 @@ function onPlayerConstructionDestroy(event)
 		end
 	end
 end
-addEvent("PlayerConstructionDestroy", onPlayerConstructionDestroy);
+--addEvent("PlayerConstructionDestroy", onPlayerConstructionDestroy);
 
 --- Player place object event.
 -- This event is triggered when the player places an object (e.g. furniture).
@@ -216,7 +223,7 @@ function onPlayerObjectPlace(event)
 		end
 	end
 end
-addEvent("PlayerObjectPlace", onPlayerObjectPlace);
+--addEvent("PlayerObjectPlace", onPlayerObjectPlace);
 
 --- Player remove object event.
 -- This event is triggered when the player deconstructs an object (e.g. furniture).
@@ -231,7 +238,7 @@ function onPlayerObjectRemove(event)
 		end
 	end
 end
-addEvent("PlayerObjectRemove", onPlayerObjectRemove);
+--addEvent("PlayerObjectRemove", onPlayerObjectRemove);
 
 --- Player destroy object event.
 -- This event is triggered when the player destroys an object (e.g. furniture).
@@ -246,7 +253,7 @@ function onPlayerObjectDestroy(event)
 		end
 	end
 end
-addEvent("PlayerObjectDestroy", onPlayerObjectDestroy);
+--addEvent("PlayerObjectDestroy", onPlayerObjectDestroy);
 
 --- Player change objectstatus event.
 -- This event is triggered when the status of an object changes - e.g. when a door is opened.
@@ -261,7 +268,7 @@ function onPlayerObjectStatusChange(event)
 		end
 	end
 end
-addEvent("PlayerObjectStatusChange", onPlayerObjectStatusChange);
+--addEvent("PlayerObjectStatusChange", onPlayerObjectStatusChange);
 
 --- Player object pickup event.
 -- This event is triggered when the player picks up an object - e.g. a torch.
@@ -275,7 +282,7 @@ function onPlayerObjectPickup(event)
 		end
 	end
 end
-addEvent("PlayerObjectPickup", onPlayerObjectPickup);
+--addEvent("PlayerObjectPickup", onPlayerObjectPickup);
 
 --- Player terrain fill up event.
 -- This event is triggered when the player fills up the terrain - i.e. when he places dirt etc.
@@ -289,7 +296,7 @@ function onPlayerTerrainFill(event)
 		end
 	end
 end
-addEvent("PlayerTerrainFill", onPlayerTerrainFill);
+--addEvent("PlayerTerrainFill", onPlayerTerrainFill);
 
 --- Player terrain destroy event.
 -- This event is triggered when the player destroys the terrain - i.e. when he is digging
@@ -303,7 +310,7 @@ function onPlayerTerrainDestroy(event)
 		end
 	end
 end
-addEvent("PlayerTerrainDestroy", onPlayerTerrainDestroy);
+--addEvent("PlayerTerrainDestroy", onPlayerTerrainDestroy);
 
 --- Player chest place event.
 -- This event is triggered when the player places a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
@@ -316,21 +323,21 @@ function onPlayerChestPlace(event)
 			event:setCancel(true);
 		else
 			local chest = {};
-			
+
 			chest["chunkOffsetX"] = event.chunkOffsetX;
 			chest["chunkOffsetY"] = event.chunkOffsetY;
 			chest["chunkOffsetZ"] = event.chunkOffsetZ;
 			chest["positionX"] = event.position.x;
 			chest["positionY"] = event.position.y;
 			chest["positionZ"] = event.position.z;
-			
+
 			chests[event.chestID] = chest;
-			
+
 			database:queryupdate("INSERT INTO chests(ID, chunkOffsetX, chunkOffsetY, chunkOffsetZ, positionX, positionY, positionZ) VALUES ('".. event.chestID .. "', '".. chest["chunkOffsetX"] .."', '".. chest["chunkOffsetY"] .."', '".. chest["chunkOffsetZ"] .."', '".. chest["positionX"] .."', '".. chest["positionY"] .."', '".. chest["positionZ"] .."')");
 		end
 	end
 end
-addEvent("PlayerChestPlace", onPlayerChestPlace);
+--addEvent("PlayerChestPlace", onPlayerChestPlace);
 
 --- Player chest remove event.
 -- This event is triggered when the player deconstructs a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
@@ -348,7 +355,7 @@ function onPlayerChestRemove(event)
 		end
 	end
 end
-addEvent("PlayerChestRemove", onPlayerChestRemove);
+--addEvent("PlayerChestRemove", onPlayerChestRemove);
 
 --- Player chest destroy event.
 -- This event is triggered when the player destroys a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
@@ -365,7 +372,7 @@ function onPlayerChestDestroy(event)
 		end
 	end
 end
-addEvent("PlayerChestDestroy", onPlayerChestDestroy);
+--addEvent("PlayerChestDestroy", onPlayerChestDestroy);
 
 --- Player vegetation place event.
 -- This event is triggered when the player places a vegetation (e.g. a sapling)
@@ -379,7 +386,7 @@ function onPlayerVegetationPlace(event)
 		end
 	end
 end
-addEvent("PlayerVegetationPlace", onPlayerVegetationPlace);
+--addEvent("PlayerVegetationPlace", onPlayerVegetationPlace);
 
 --- Player vegetation destroy event.
 -- This event is triggered when the player destroys vegetation (e.g. cut a tree).
@@ -393,7 +400,7 @@ function onPlayerVegetationDestroy(event)
 		end
 	end
 end
-addEvent("PlayerVegetationDestroy", onPlayerVegetationDestroy);
+--addEvent("PlayerVegetationDestroy", onPlayerVegetationDestroy);
 
 --- Player vegetation pickup event.
 -- This event is triggered when the player picks up vegetation (e.g. flowers).
@@ -407,7 +414,7 @@ function onPlayerVegetationPickup(event)
 		end
 	end
 end
-addEvent("PlayerVegetationPickup", onPlayerVegetationPickup);
+--addEvent("PlayerVegetationPickup", onPlayerVegetationPickup);
 
 --- Player grass remove event.
 -- This event is triggered when the player cuts grass.
@@ -421,7 +428,7 @@ function onPlayerGrassRemove(event)
 		end
 	end
 end
-addEvent("PlayerGrassRemove", onPlayerGrassRemove);
+--addEvent("PlayerGrassRemove", onPlayerGrassRemove);
 
 --- Move item from inventory to chest event.
 -- This event is triggered when an item is moved from the inventory into a chest.
@@ -446,7 +453,7 @@ function onInventoryToChest(event)
 		end
 	end
 end
-addEvent("InventoryToChest", onInventoryToChest);
+--addEvent("InventoryToChest", onInventoryToChest);
 
 --- Move item from chest to inventory event.
 -- This event is triggered when an item is moved from the chest into the players inventory.
@@ -464,7 +471,7 @@ function onChestToInventory(event)
 		end
 	end
 end
-addEvent("ChestToInventory", onChestToInventory);
+--addEvent("ChestToInventory", onChestToInventory);
 
 --- Drop item out of a chest.
 -- This event is triggered when an item is dropped out of a chest (i.e. drop a chest item).
@@ -481,24 +488,15 @@ function onChestItemDrop(event)
 		end
 	end
 end
-addEvent("ChestItemDrop", onChestItemDrop);
-
---- Player respawn event.
--- This event is called when a player requests to respawn (when pressing the "respawn"-button
--- in the gameover screen).
--- @param event The event object. Cancel the event to prevent the player from respawning
-function onPlayerRespawn(event)
-	
-end
-addEvent("PlayerRespawn", onPlayerRespawn);
+--addEvent("ChestItemDrop", onChestItemDrop);
 
 --- Player damage event.
 -- This event is triggered when the player receives damage.
 -- @param event The event object. Cancel the event to prevent the player to receive damage
-function onPlayerDamage(event)
+--function onPlayerDamage(event)
 	-- This is an example how to make an admin invulnerable
 	--if event.player:isAdmin() then
 	--	event:setCancel(true);
 	--end
-end
-addEvent("PlayerDamage", onPlayerDamage);
+--end
+--addEvent("PlayerDamage", onPlayerDamage);
