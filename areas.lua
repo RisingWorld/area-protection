@@ -3,6 +3,19 @@
 areas = {};
 
 
+
+--- Calculates the "global" start- and endposition of an area.
+-- @param area The area object
+local function calculateGlobalAreaPosition(area)
+  area["globalStartPositionX"] = ChunkUtils:getGlobalBlockPositionX(area["startChunkpositionX"], area["startBlockpositionX"]);
+  area["globalStartPositionY"] = ChunkUtils:getGlobalBlockPositionY(area["startChunkpositionY"], area["startBlockpositionY"]);
+  area["globalStartPositionZ"] = ChunkUtils:getGlobalBlockPositionZ(area["startChunkpositionZ"], area["startBlockpositionZ"]);
+  area["globalEndPositionX"]   = ChunkUtils:getGlobalBlockPositionX(area["endChunkpositionX"], area["endBlockpositionX"]);
+  area["globalEndPositionY"]   = ChunkUtils:getGlobalBlockPositionY(area["endChunkpositionY"], area["endBlockpositionY"]);
+  area["globalEndPositionZ"]   = ChunkUtils:getGlobalBlockPositionZ(area["endChunkpositionZ"], area["endBlockpositionZ"]);
+end
+
+
 --- Load all areas from the database and store them in the global areas object
 function loadAreas()
   local result = database:query("SELECT * FROM areas;");
@@ -36,21 +49,9 @@ function loadAreas()
     };
 
     calculateGlobalAreaPosition(area);
-    areas[result:getInt("id")] = area;
+    areas[area["id"]] = area;
     --table.insert(areas, result:getInt("ID"), area);
   end
-end
-
-
---- Calculates the "global" start- and endposition of an area.
--- @param area The area object
-function local calculateGlobalAreaPosition(area)
-  area["globalStartPositionX"] = ChunkUtils:getGlobalBlockPositionX(area["startChunkpositionX"], area["startBlockpositionX"]);
-  area["globalStartPositionY"] = ChunkUtils:getGlobalBlockPositionY(area["startChunkpositionY"], area["startBlockpositionY"]);
-  area["globalStartPositionZ"] = ChunkUtils:getGlobalBlockPositionZ(area["startChunkpositionZ"], area["startBlockpositionZ"]);
-  area["globalEndPositionX"]   = ChunkUtils:getGlobalBlockPositionX(area["endChunkpositionX"], area["endBlockpositionX"]);
-  area["globalEndPositionY"]   = ChunkUtils:getGlobalBlockPositionY(area["endChunkpositionY"], area["endBlockpositionY"]);
-  area["globalEndPositionZ"]   = ChunkUtils:getGlobalBlockPositionZ(area["endChunkpositionZ"], area["endBlockpositionZ"]);
 end
 
 

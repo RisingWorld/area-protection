@@ -10,7 +10,7 @@ function loadRights(areaId)
   local result = database:query("SELECT * FROM rights WHERE areaId='"..areaId.."';");
 
   while result:next() do
-    local group = getGroupByName(result:getString("group"));
+    local group = getGroupByName(result:getString("groupName"));
 
     if group ~= nil then
       rights[result:getInt("playerId")] = {

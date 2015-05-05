@@ -3,10 +3,12 @@
 --world = getWorld();
 
 -- Includes
+include("i18n/i18n.lua");
 include("db.lua");
 include("groups.lua");
 include("rights.lua");
 include("areas.lua");
+include("security.lua");
 include("table-ext/table-ext.lua");
 include("listener/playerListener.lua");
 include("listener/commandListener.lua");
@@ -22,6 +24,10 @@ include("listener/commandListener.lua");
 function onEnable()
 	local config = getProperty("config.properties");
 
+	-- init locales
+	i18n.init(config);
+
+	-- Initialize all tables and data storage
 	initDatabase(config);
 
 	-- Load all groups from property-files

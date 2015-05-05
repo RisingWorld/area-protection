@@ -4,6 +4,7 @@ local baseAreaId = 1000000;
 
 
 local function areaHelp(event, args)
+	print("Show help");
 
 	-- TODO
 
@@ -20,7 +21,7 @@ local function areaShow(event)
 		areasVisible = {};
 
 		for key,area in pairs(areas) do
-			local areaId = baseAreaId + area["areaId"];
+			local areaId = baseAreaId + area["id"];
 
 			table.insert(areasVisible, areaId);
 			table.insert(playerAreas, {
@@ -46,10 +47,11 @@ local function areaShow(event)
 			});
 		end
 
+		print("Showing ".. #playerAreas .." areas to ".. event.player:getName());
+
 		event.player:setAttribute("areasVisible", true);
 		event.player:createAreas(playerAreas);
 		event.player:showAreas(areasVisible);
-
 	end
 end
 
@@ -60,7 +62,7 @@ local function areaHide(event)
 	local areaIds = {};
 
 	for key,area in pairs(areas) do
-		table.insert(areaIds, baseAreaId + area["areaId"]);
+		table.insert(areaIds, baseAreaId + area["id"]);
 	end
 
 	event.player:destroyAreas(areaIds);
@@ -75,6 +77,13 @@ local function areaSelect(event, args, flags)
 		event.player:sendYellMessage("Select the area and type \"/createarea\" to save it");
 	end);
 
+end
+
+
+local function areaCancel(event)
+	event.player:disableMarkingSelector(function ()
+
+	end);
 end
 
 
@@ -163,7 +172,7 @@ local function areaGrant(event, args, flags)
 			if group ~= nil then
 				if player ~= nil then
 					if areas[areaID]["rights"][player.dbID] == nil then
-						database:queryupdate("INSERT INTO rights ('areaID', 'playerID', 'group') VALUES ('".. areas[areaID]["areaID"] .."', '".. player.dbID .. "', '".. cmd[2] .. "')");
+						database:queryupdate("INSERT INTO rights ('areaID', 'playerID', 'group') VALUES ('".. areas[areaID]["id"] .."', '".. player.dbID .. "', '".. cmd[2] .. "')");
 					else
 						database:queryupdate("UPDATE rights SET 'group'='".. cmd[2] .."'");
 					end
@@ -236,6 +245,8 @@ function onPlayerCommand(event)
 				if checkPlayerAccess(event.player, "info") then areaInfo(event, table.slice(args, 3), flags); end;
 			elseif cmd == "select" then
 				if checkPlayerAccess(event.player, "select") then areaSelect(event, table.slice(args, 3), flags); end;
+			elseif cmd == "cancel" then
+				areaCancel(event);
 			elseif cmd == "create" then
 				if checkPlayerAccess(event.player, "create") then areaCreate(event, table.slice(args, 3), flags); end;
 			elseif cmd == "remove" then

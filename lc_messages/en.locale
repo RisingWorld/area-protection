@@ -1,0 +1,4 @@
+# English
+# Locale for Area Protection script
+
+error.restricted=You don't have admin rights on this server. Request Admin rights or use /area cancel to cancel the selection.
