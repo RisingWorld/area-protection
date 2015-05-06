@@ -3,6 +3,7 @@ assignableGroups=builder,landscaper,designer,guest
 areaColor=#FFFF00
 
 placeObjects=true
+changeObjectStatus=true
 destroyObjects=true
 removeObjects=true
 pickupObject=true
@@ -19,8 +20,8 @@ placeBlock=true
 destroyBlock=true
 blockFilter=
 
-destroyTerrain=true
 fillTerrain=true
+destroyTerrain=true
 
 canEnter=true
 canLeave=true
@@ -29,7 +30,7 @@ inventoryToChest=true
 chestToInventory=true
 chestDrop=true
 
+placeVegetation=true
 pickupVegetation=true
 removeVegetation=true
-placeVegetation=true
 cutGrass=true

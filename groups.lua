@@ -17,33 +17,42 @@ function loadGroups(config)
     local groupProperty = getProperty(groupPath .. "/" .. groupFiles[i] .. ".group");
     local group = {
       name                       = groupFiles[i],
+
+      assignableGroups           = StringUtils:explode(groupProperty:getProperty("assignableGroups"), ","),
+
+      areaColor                  = Color.new(groupProperty:getProperty("areaColor")),
+
       placeObjects               = StringUtils:getBoolean(groupProperty:getProperty("placeObjects")),
+      changeObjectStatus         = StringUtils:getBoolean(groupProperty:getProperty("changeObjectStatus")),
       destroyObjects             = StringUtils:getBoolean(groupProperty:getProperty("destroyObjects")),
       removeObjects              = StringUtils:getBoolean(groupProperty:getProperty("removeObjects")),
       pickupObject               = StringUtils:getBoolean(groupProperty:getProperty("pickupObject")),
-      changeObjectStatus         = StringUtils:getBoolean(groupProperty:getProperty("changeObjectStatus")),
+      objectsPlaceFilter         = StringUtils:explode(groupProperty:getProperty("objectsPlaceFilter"), ","),
+      objectsRemoveDestroyFilter = StringUtils:explode(groupProperty:getProperty("objectsRemoveDestroyFilter"), ","),
+
       placeConstructions         = StringUtils:getBoolean(groupProperty:getProperty("placeConstructions")),
       destroyConstructions       = StringUtils:getBoolean(groupProperty:getProperty("destroyConstructions")),
       removeConstructions        = StringUtils:getBoolean(groupProperty:getProperty("removeConstructions")),
+      constructionsFilter        = StringUtils:explode(groupProperty:getProperty("constructionsFilter"), ","),
+
       placeBlock                 = StringUtils:getBoolean(groupProperty:getProperty("placeBlock")),
       destroyBlock               = StringUtils:getBoolean(groupProperty:getProperty("destroyBlock")),
-      destroyWorld               = StringUtils:getBoolean(groupProperty:getProperty("destroyWorld")),
-      fillWorld                  = StringUtils:getBoolean(groupProperty:getProperty("fillWorld")),
+      blockFilter                = StringUtils:explode(groupProperty:getProperty("blockFilter"), ","),
+
+      fillTerrain                = StringUtils:getBoolean(groupProperty:getProperty("fillWorld")),
+      destroyTerrain             = StringUtils:getBoolean(groupProperty:getProperty("destroyWorld")),
+
       canEnter                   = StringUtils:getBoolean(groupProperty:getProperty("canEnter")),
       canLeave                   = StringUtils:getBoolean(groupProperty:getProperty("canLeave")),
+
       inventoryToChest           = StringUtils:getBoolean(groupProperty:getProperty("inventoryToChest")),
       chestToInventory           = StringUtils:getBoolean(groupProperty:getProperty("chestToInventory")),
       chestDrop                  = StringUtils:getBoolean(groupProperty:getProperty("chestDrop")),
-      removeVegetation           = StringUtils:getBoolean(groupProperty:getProperty("removeVegetation")),
-      placeVegetation            = StringUtils:getBoolean(groupProperty:getProperty("placeVegetation")),
-      cutGrass                   = StringUtils:getBoolean(groupProperty:getProperty("cutGrass")),
-      pickupVegetation           = StringUtils:getBoolean(groupProperty:getProperty("pickupVegetation")),
 
-      --Load different filters (for example to determine which blocks are affected by any rules etc.)
-      objectsPlaceFilter         = StringUtils:explode(groupProperty:getProperty("objectsPlaceFilter"), ","),
-      objectsRemoveDestroyFilter = StringUtils:explode(groupProperty:getProperty("objectsRemoveDestroyFilter"), ","),
-      constructionsFilter        = StringUtils:explode(groupProperty:getProperty("constructionsFilter"), ","),
-      blockFilter                = StringUtils:explode(groupProperty:getProperty("blockFilter"), ",")
+      placeVegetation            = StringUtils:getBoolean(groupProperty:getProperty("placeVegetation")),
+      pickupVegetation           = StringUtils:getBoolean(groupProperty:getProperty("pickupVegetation")),
+      removeVegetation           = StringUtils:getBoolean(groupProperty:getProperty("removeVegetation")),
+      cutGrass                   = StringUtils:getBoolean(groupProperty:getProperty("cutGrass"))
     };
 
     --Insert the group into the global groups table
@@ -80,5 +89,5 @@ end
 -- @param area The area object
 -- @return The group of the player in the specified area
 function getPlayerGroupInArea(player, area)
-  return area["rights"][player:getPlayerDBID()];
+  return area and (area["rights"][player:getDBID()] or defaultGroup);
 end

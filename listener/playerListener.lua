@@ -10,7 +10,7 @@ function onPlayerConnect(event)
 	-- current area label
 	label = Gui:createLabel("", 0.05, 0.135);
 	label:setFontsize(19);
-	label:setFontColor(0xFFBE1EFF); -- orange, opaque
+	label:setFontColor(0xFFCE3EFF); -- orange, opaque
 	label:setPivot(0);  -- left aligned
 	label:setVisible(false);
 	event.player:addGuiElement(label);
@@ -54,67 +54,9 @@ addEvent("PlayerConnect", onPlayerConnect);
 -- This event is called everytime the player changes his position.
 -- @param event The event object. Cancel the event to teleport the player back to his old position
 function onPlayerChangePosition(event)
-	local areaId = event.player:getAttribute("areaId");
-	local areaGroup = event.player:getAttribute("areaGroup");
-	local playerAreas = event.player:getAttribute("areas");
-	local label = event.player:getAttribute("areaLabel");
-	local group;
-
-	for key,value in pairs(areas) do
-		if AreaUtils:isPointInArea3D(event.player:getPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
-			group = value["rights"][event.player:getDBID()] or defaultGroup;
-
-			if table.contains(playerAreas, key) == false then
-				if group["CanEnter"] == false then
-					event:setCancel(true);
-					-- TODO: if player is inside area (i.e. teleport), move player outside now
-					return;
-				end
-
-				-- entering area
-				areaId = key;
-				areaGroup = group;
-
-				table.insert(playerAreas, key); -- push area on top of stack
-			end
-
-		elseif areaId and (areaId == key) then
-			-- we moved out of the current area
-
-			if areaGroup["CanLeave"] == false then
-				event:setCancel(true);
-			else
-				local stop = false;
-
-				-- filter out this area off the queue
-				table.removeAll(playerAreas, key);
-				areaId = nil;
-				areaGroup = nil;
-
-				while stop ~= true and #playerAreas > 0 do
-					if areas[playerAreas[#playerAreas]] ~= nil then
-						areaId = playerAreas[#playerAreas];
-						areaGroup = areas[areaId]["rights"][event.player:getDBID()] or defaultGroup;
-						stop = true;
-					else
-						table.remove(playerAreas);  -- pop area off the stack
-					end
-				end
-			end
-		end
+	if updateCurrentArea(event.player) == false then
+		event:setCancel(true);
 	end
-
-	if areaId then
-		label:setText(areas[areaId]["name"]);
-		label:setVisible(true);
-	else
-		label:setText("");
-		label:setVisible(false);
-	end
-
-	event.player:setAttribute("areaId", areaId);
-	event.player:setAttribute("areaGroup", areaGroup);
-	event.player:setAttribute("areas", playerAreas);
 end
 addEvent("PlayerChangePosition", onPlayerChangePosition);
 
@@ -135,10 +77,11 @@ addEvent("PlayerChangePosition", onPlayerChangePosition);
 -- This event is triggered when the player places a block.
 -- @param event The event object. Cancel the event to prevent to block to be placed
 function onPlayerBlockPlace(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
+	print("PlayerBlockBlace: ".. event.newBlockID);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PlaceBlock"] == false and tableContains(group["BlockFilter"], tostring(event.newBlockID)) == false then
+		if group["placeBlock"] == false and table.contains(group["blockFilter"], tostring(event.newBlockID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -150,10 +93,10 @@ end
 -- @param event The event object. Cancel the event to prevent the block to be destroyed
 function onPlayerBlockDestroy(event)
 	print("PlayerBlockDestroy: ".. event.oldBlockID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["DestroyBlock"] == false and tableContains(group["BlockFilter"], tostring(event.oldBlockID)) == false then
+		if group["destroyBlock"] == false and table.contains(group["blockFilter"], tostring(event.oldBlockID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -165,10 +108,10 @@ end
 -- @param event The event object. Cancel the event to prevent the element to be placed
 function onPlayerConstructionPlace(event)
 	print("PlayerConstructionPlace: ".. event.constructionID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PlaceConstructions"] == false and tableContains(group["ConstructionsFilter"], tostring(event.constructionID)) == false then
+		if group["placeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -180,10 +123,10 @@ end
 -- @param event The event object. Cancel the event to prevent the element to be deconstructed
 function onPlayerConstructionRemove(event)
 	print("PlayerConstructionRemove: ".. event.constructionID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["RemoveConstructions"] == false and tableContains(group["ConstructionsFilter"], tostring(event.constructionId)) == false then
+		if group["removeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionId)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -195,10 +138,10 @@ end
 -- @param event The event object. Cancel the event to prevent the element to be destroyed
 function onPlayerConstructionDestroy(event)
 	print("PlayerConstructionDestroy: ".. event.constructionID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["DestroyConstructions"] == false and tableContains(group["ConstructionsFilter"], tostring(event.constructionID)) == false then
+		if group["destroyConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -210,10 +153,10 @@ end
 -- @param event The event object. Cancel the event to prevent the element to be placed
 function onPlayerObjectPlace(event)
 	print("PlayerObjectPlace: ".. event.objectTypeID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PlaceObjects"] == false and tableContains(group["ObjectsPlaceFilter"], tostring(event.objectTypeID)) == false then
+		if group["placeObjects"] == false and table.contains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -225,10 +168,10 @@ end
 -- @param event The event object. Cancel the event to prevent the element to be deconstructed
 function onPlayerObjectRemove(event)
 	print("PlayerObjectRemove: ".. event.objectTypeID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["RemoveObjects"] == false and tableContains(group["ObjectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
+		if group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -240,10 +183,10 @@ end
 -- @param event The event object. Cancel the event to prevent the element to be destroyed
 function onPlayerObjectDestroy(event)
 	print("PlayerObjectDestroy: ".. event.objectTypeID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["DestroyObjects"] == false and tableContains(group["ObjectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
+		if group["destroyObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
 			event:setCancel(true);
 		end
 	end
@@ -255,10 +198,10 @@ end
 -- @param event The event object. Cancel the event to prevent the status to be changed (e.g. prevents a door from opening)
 function onPlayerObjectStatusChange(event)
 	print("PlayerObjectStatusChange: ".. event.objectTypeID);
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["ChangeObjectStatus"] == false then
+		if group["changeObjectStatus"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -269,10 +212,11 @@ end
 -- This event is triggered when the player picks up an object - e.g. a torch.
 -- @param event The event object. Cancel the event to prevent the player from picking up the object
 function onPlayerObjectPickup(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	print("PlayerObjectPickup: ".. event.objectTypeID);
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PickupObject"] == false then
+		if group["pickupObject"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -283,10 +227,11 @@ end
 -- This event is triggered when the player fills up the terrain - i.e. when he places dirt etc.
 -- @param event The event object. Cancel the event to prevent the player to fill up the terrain
 function onPlayerTerrainFill(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
+	print("PlayerTerrainFill");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["FillWorld"] == false then
+		if group["fillTerrain"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -297,10 +242,11 @@ end
 -- This event is triggered when the player destroys the terrain - i.e. when he is digging
 -- @param event The event object. Cancel the event to prevent the player to remove the terrain
 function onPlayerTerrainDestroy(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
+	print("PlayerTerrainDestroy");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["DestroyWorld"] == false then
+		if group["destroyTerrain"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -311,72 +257,43 @@ end
 -- This event is triggered when the player places a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
 -- @param event The event object. Cancel the event to prevent the player to place the chest object
 function onPlayerChestPlace(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	print("PlayerChestPlace");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PlaceObjects"] == false and tableContains(group["ObjectsPlaceFilter"], tostring(event.objectTypeID)) == false then
+		if group["placeObjects"] == false and tableContains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false then
 			event:setCancel(true);
-		else
-			local chest = {};
-
-			chest["chunkOffsetX"] = event.chunkOffsetX;
-			chest["chunkOffsetY"] = event.chunkOffsetY;
-			chest["chunkOffsetZ"] = event.chunkOffsetZ;
-			chest["positionX"] = event.position.x;
-			chest["positionY"] = event.position.y;
-			chest["positionZ"] = event.position.z;
-
-			chests[event.chestID] = chest;
-
-			database:queryupdate("INSERT INTO chests(ID, chunkOffsetX, chunkOffsetY, chunkOffsetZ, positionX, positionY, positionZ) VALUES ('".. event.chestID .. "', '".. chest["chunkOffsetX"] .."', '".. chest["chunkOffsetY"] .."', '".. chest["chunkOffsetZ"] .."', '".. chest["positionX"] .."', '".. chest["positionY"] .."', '".. chest["positionZ"] .."')");
 		end
 	end
 end
 --addEvent("PlayerChestPlace", onPlayerChestPlace);
 
 --- Player chest remove event.
--- This event is triggered when the player deconstructs a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
--- @param event The event object. Cancel the event to prevent the player from removing the chest
+--- Player chest destroy event.
+-- This event is triggered when the player destroys or deconstructs a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
+-- @param event The event object. Cancel the event to prevent the player from destroying the chest
 function onPlayerChestRemove(event)
-	local chest = chests[event.chestID];
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	print("PlayerChestRemove");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["RemoveObjects"] == false and tableContains(group["ObjectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
+		if group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
 			event:setCancel(true);
-		else
-			chests[event.chestID] = nil;
-			database:queryupdate("DELETE FROM chests WHERE ID= '" .. event.chestID .. "'");
 		end
 	end
 end
 --addEvent("PlayerChestRemove", onPlayerChestRemove);
-
---- Player chest destroy event.
--- This event is triggered when the player destroys a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
--- @param event The event object. Cancel the event to prevent the player from destroying the chest
-function onPlayerChestDestroy(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
-		local group = getPlayerGroupInArea(event.player, area);
-		if group["RemoveObjects"] == false and tableContains(group["ObjectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
-			event:setCancel(true);
-		else
-			chests[event.chestID] = nil;
-			database:queryupdate("DELETE FROM chests WHERE ID= '" .. event.chestID .. "'");
-		end
-	end
-end
 --addEvent("PlayerChestDestroy", onPlayerChestDestroy);
 
 --- Player vegetation place event.
 -- This event is triggered when the player places a vegetation (e.g. a sapling)
 -- @param event The event object. Cancel the event to prevent the player from placing vegetations
 function onPlayerVegetationPlace(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	print("PlayerVegetationPlace");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PlaceVegetation"] == false then
+		if group["placeVegetation"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -387,10 +304,11 @@ end
 -- This event is triggered when the player destroys vegetation (e.g. cut a tree).
 -- @param event The event object. Cancel the event to prevent the player from destroying vegetations
 function onPlayerVegetationDestroy(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	print("PlayerVegetationDestroy");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["RemoveVegetation"] == false then
+		if group["removeVegetation"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -401,10 +319,11 @@ end
 -- This event is triggered when the player picks up vegetation (e.g. flowers).
 -- @param event The event object. Cancel the event to prevent the player from picking up vegetations
 function onPlayerVegetationPickup(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	print("PlayerVegetationPickup");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["PickupVegetation"] == false then
+		if group["pickupVegetation"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -415,10 +334,11 @@ end
 -- This event is triggered when the player cuts grass.
 -- @param event The event object. Cancel the event to prevent the player from cutting grass
 function onPlayerGrassRemove(event)
-	local area = getCurrentArea(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
+	print("PlayerGrassRemove");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["CutGrass"] == false then
+		if group["cutGrass"] == false then
 			event:setCancel(true);
 		end
 	end
@@ -431,12 +351,12 @@ end
 function onInventoryToChest(event)
 	local chest = chests[event.chestID];
 	if chest ~= nil then
-		local area = getCurrentArea(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
+		local area = getAreaAtPosition(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
 		if area ~= nil then
 			local group = getPlayerGroupInArea(event.player, area);
-			if group["InventoryToChest"] == false then
+			if group["inventoryToChest"] == false then
 				event:setCancel(true);
-			elseif group["ChestToInventory"] == false then
+			elseif group["chestToInventory"] == false then
 				local serverchest = server:getChest(event.chestID);
 				if serverchest ~= nil then
 					local chestitem = serverchest:getItem(event.chestslot);
@@ -457,10 +377,10 @@ function onChestToInventory(event)
 	print("CHEST:" .. event.chestID);
 	local chest = chests[event.chestID];
 	if chest ~= nil then
-		local area = getCurrentArea(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
+		local area = getAreaAtPosition(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
 		if area ~= nil then
 			local group = getPlayerGroupInArea(event.player, area);
-			if group["ChestToInventory"] == false then
+			if group["chestToInventory"] == false then
 				event:setCancel(true);
 			end
 		end
@@ -474,10 +394,10 @@ end
 function onChestItemDrop(event)
 	local chest = chests[event.chestID];
 	if chest ~= nil then
-		local area = getCurrentArea(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
+		local area = getAreaAtPosition(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
 		if area ~= nil then
 			local group = getPlayerGroupInArea(event.player, area);
-			if group["ChestDrop"] == false then
+			if group["chestDrop"] == false then
 				event:setCancel(true);
 			end
 		end

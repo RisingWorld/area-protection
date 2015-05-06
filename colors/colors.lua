@@ -8,11 +8,12 @@
 -- (c) 2008 Yuri Takhteyev (yuri@freewisdom.org) *
 --
 -- * rgb_to_hsl() implementation was contributed by Markus Fleck-Graffe.
+-- * Refactored for Rising World by LordFoobar
 -----------------------------------------------------------------------------
 
 --module(..., package.seeall)
 
-local Color = {}
+Color = {}
 local Color_mt = {__metatable = {}, __index = Color}
 
 -----------------------------------------------------------------------------
@@ -23,11 +24,11 @@ local Color_mt = {__metatable = {}, __index = Color}
 -- @param L              lightness (0.0-1.0)
 -- @return               an instance of Color
 -----------------------------------------------------------------------------
-function new(H, S, L)
+function Color.new(H, S, L)
    if type(H) == "string" and H:sub(1,1)=="#" and H:len() == 7 then
-      H, S, L = rgb_string_to_hsl(H)
+      H, S, L = Color.rgb_string_to_hsl(H)
    end
-   assert(Color_mt)
+   --assert(Color_mt)
    return setmetatable({H = H, S = S, L = L}, Color_mt)
 end
 
@@ -40,8 +41,7 @@ end
 -- @param L              lightness (0.0-1.0)
 -- @return               an R, G, and B component of RGB
 -----------------------------------------------------------------------------
-
-function hsl_to_rgb(h, s, L)
+function Color.hsl_to_rgb(h, s, L)
    h = h/360
    local m1, m2
    if L<=0.5 then
@@ -77,8 +77,7 @@ end
 -- @param b              blue (0.0-1.0)
 -- @return               corresponding H, S and L components
 -----------------------------------------------------------------------------
-
-function rgb_to_hsl(r, g, b)
+function Color.rgb_to_hsl(r, g, b)
    --r, g, b = r/255, g/255, b/255
    local min = math.min(r, g, b)
    local max = math.max(r, g, b)
@@ -102,10 +101,10 @@ function rgb_to_hsl(r, g, b)
    return h * 360, s, l
 end
 
-function rgb_string_to_hsl(rgb)
-   return rgb_to_hsl(tonumber(rgb:sub(2,3), 16)/256,
-                     tonumber(rgb:sub(4,5), 16)/256,
-                     tonumber(rgb:sub(6,7), 16)/256)
+function Color.rgb_string_to_hsl(rgb)
+   return Color.rgb_to_hsl(tonumber(rgb:sub(2,3), 16)/256,
+                           tonumber(rgb:sub(4,5), 16)/256,
+                           tonumber(rgb:sub(6,7), 16)/256)
 end
 
 -----------------------------------------------------------------------------
@@ -114,10 +113,9 @@ end
 -- @return               a 6-digit RGB representation of the color prefixed
 --                       with "#" (suitable for inclusion in HTML)
 -----------------------------------------------------------------------------
-
-function Color:to_rgb()
-   local r, g, b = hsl_to_rgb(self.H, self.S, self.L)
-   local rgb = {hsl_to_rgb(self.H, self.S, self.L)}
+function Color:toRGBString()
+   local r, g, b = Color.hsl_to_rgb(self.H, self.S, self.L)
+   local rgb = {Color.hsl_to_rgb(self.H, self.S, self.L)}
    local buffer = "#"
    for i,v in ipairs(rgb) do
 	  buffer = buffer..string.format("%02x",math.floor(v*256+0.5))
@@ -126,13 +124,22 @@ function Color:to_rgb()
 end
 
 -----------------------------------------------------------------------------
+-- Convenience method calling Color.hsl_to_rgb
+--
+-- @return               three components parts: r, g, b
+-----------------------------------------------------------------------------
+function Color:toRGB()
+   return Color.hsl_to_rgb(self.H, self.S, self.L);
+end
+
+-----------------------------------------------------------------------------
 -- Creates a new color with hue different by delta.
 --
 -- @param delta          a delta for hue.
 -- @return               a new instance of Color.
 -----------------------------------------------------------------------------
-function Color:hue_offset(delta)
-   return new((self.H + delta) % 360, self.S, self.L)
+function Color:hueOffset(delta)
+   return Color.new((self.H + delta) % 360, self.S, self.L)
 end
 
 -----------------------------------------------------------------------------
@@ -172,7 +179,7 @@ end
 --                       the returned colors
 -- @return               two new instances of Color
 -----------------------------------------------------------------------------
-function Color:split_complementary(angle)
+function Color:splitComplementary(angle)
    return self:neighbors(180-(angle or 30))
 end
 
@@ -182,8 +189,8 @@ end
 -- @param saturation     the new saturation value (0.0 - 1.0)
 -- @return               a new instance of Color
 -----------------------------------------------------------------------------
-function Color:desaturate_to(saturation)
-   return new(self.H, saturation, self.L)
+function Color:desaturateTo(saturation)
+   return Color.new(self.H, saturation, self.L)
 end
 
 -----------------------------------------------------------------------------
@@ -192,8 +199,8 @@ end
 -- @param r              the multiplier for the new saturation
 -- @return               a new instance of Color
 -----------------------------------------------------------------------------
-function Color:desaturate_by(r)
-   return new(self.H, self.S*r, self.L)
+function Color:desaturateBy(r)
+   return Color.new(self.H, math.min(math.max(self.S*r, 0), 1), self.L)
 end
 
 -----------------------------------------------------------------------------
@@ -202,8 +209,8 @@ end
 -- @param lightness      the new lightness value (0.0 - 1.0)
 -- @return               a new instance of Color
 -----------------------------------------------------------------------------
-function Color:lighten_to(lightness)
-   return new(self.H, self.S, lightness)
+function Color:lightenTo(lightness)
+   return Color.new(self.H, self.S, lightness)
 end
 
 -----------------------------------------------------------------------------
@@ -212,8 +219,8 @@ end
 -- @param r              the multiplier for the new lightness
 -- @return               a new instance of Color
 -----------------------------------------------------------------------------
-function Color:lighten_by(r)
-   return new(self.H, self.S, self.L*r)
+function Color:lightenBy(r)
+   return Color.new(self.H, self.S, math.min(math.max(self.L*r, 0), 1))
 end
 
 -----------------------------------------------------------------------------
@@ -241,7 +248,7 @@ end
 -----------------------------------------------------------------------------
 function Color:tints(n)
    local f = function (color, i, n)
-                return color:lighten_to(color.L + (1-color.L)/n*i)
+                return color:lightenTo(color.L + (1-color.L)/n*i)
              end
    return self:variations(f, n)
 end
@@ -254,17 +261,17 @@ end
 -----------------------------------------------------------------------------
 function Color:shades(n)
    local f = function (color, i, n)
-                return color:lighten_to(color.L - (color.L)/n*i)
+                return color:lightenTo(color.L - (color.L)/n*i)
              end
    return self:variations(f, n)
 end
 
 function Color:tint(r)
-      return self:lighten_to(self.L + (1-self.L)*r)
+   return self:lightenTo(self.L + (1-self.L)*r)
 end
 
 function Color:shade(r)
-      return self:lighten_to(self.L - self.L*r)
+   return self:lightenTo(self.L - self.L*r)
 end
 
-Color_mt.__tostring = Color.to_rgb
+Color_mt.__tostring = Color.toRGBString

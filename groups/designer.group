@@ -2,34 +2,35 @@ assignableGroups=
 
 areaColor=#AA00AA
 
-placeObjects=true
-destroyObjects=true
-removeObjects=true
-pickupObject=true
+placeObjects=false
+changeObjectStatus=false
+destroyObjects=false
+removeObjects=false
+pickupObject=false
 objectsPlaceFilter=
 objectsChangeStatusFilter=
 objectsRemoveDestroyFilter=
 
-placeConstructions=false
-destroyConstructions=false
-removeConstructions=false
+placeConstructions=true
+destroyConstructions=true
+removeConstructions=true
 constructionsFilter=
 
-placeBlock=false
-destroyBlock=false
+placeBlock=true
+destroyBlock=true
 blockFilter=
 
-destroyTerrain=false
 fillTerrain=false
+destroyTerrain=false
 
 canEnter=true
 canLeave=true
 
-inventoryToChest=false
-chestToInventory=false
+inventoryToChest=true
+chestToInventory=true
 chestDrop=false
 
-pickupVegetation=false
-removeVegetation=false
 placeVegetation=false
-cutGrass=false
+pickupVegetation=false
+removeVegetation=true
+cutGrass=true

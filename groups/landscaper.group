@@ -3,6 +3,7 @@ assignableGroups=
 areaColor=#00FF00
 
 placeObjects=false
+changeObjectStatus=true
 destroyObjects=false
 removeObjects=false
 pickupObject=false
@@ -19,8 +20,8 @@ placeBlock=false
 destroyBlock=false
 blockFilter=
 
-destroyTerrain=false
 fillTerrain=false
+destroyTerrain=false
 
 canEnter=true
 canLeave=true
@@ -29,7 +30,7 @@ inventoryToChest=false
 chestToInventory=false
 chestDrop=false
 
-pickupVegetation=true
-removeVegetation=true
-placeVegetation=true
-cutGrass=true
+placeVegetation=false
+pickupVegetation=false
+removeVegetation=false
+cutGrass=false

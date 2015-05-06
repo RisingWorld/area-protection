@@ -43,7 +43,7 @@ local function areaShow(event)
 				area["endBlockpositionY"],
 				area["endBlockpositionZ"],
 
-				0x0000ff77
+				getAreaColor(event.player, area)
 			});
 		end
 
@@ -99,31 +99,36 @@ local function areaCreate(event, args, flags)
 		-- Provide a Callback-function, since it can't be triggered immediately, only after we receive the response from the player
 		event.player:disableMarkingSelector(function(markingEvent)
 			if markingEvent ~= false then
-				local area = {};
-				area["name"] = args[1];
-				area["startChunkpositionX"] = markingEvent.startChunkpositionX;
-				area["startChunkpositionY"] = markingEvent.startChunkpositionY;
-				area["startChunkpositionZ"] = markingEvent.startChunkpositionZ;
-				area["startBlockpositionX"] = markingEvent.startBlockpositionX;
-				area["startBlockpositionY"] = markingEvent.startBlockpositionY;
-				area["startBlockpositionZ"] = markingEvent.startBlockpositionZ;
+				local playerId = markingEvent.player:getDBID();
+				local area = {
+				  name = args[1],
+				  startChunkpositionX = markingEvent.startChunkpositionX,
+				  startChunkpositionY = markingEvent.startChunkpositionY,
+				  startChunkpositionZ = markingEvent.startChunkpositionZ,
+				  startBlockpositionX = markingEvent.startBlockpositionX,
+				  startBlockpositionY = markingEvent.startBlockpositionY,
+				  startBlockpositionZ = markingEvent.startBlockpositionZ,
 
-				area["endChunkpositionX"] = markingEvent.endChunkpositionX;
-				area["endChunkpositionY"] = markingEvent.endChunkpositionY;
-				area["endChunkpositionZ"] = markingEvent.endChunkpositionZ;
-				area["endBlockpositionX"] = markingEvent.endBlockpositionX;
-				area["endBlockpositionY"] = markingEvent.endBlockpositionY;
-				area["endBlockpositionZ"] = markingEvent.endBlockpositionZ;
+				  endChunkpositionX = markingEvent.endChunkpositionX,
+				  endChunkpositionY = markingEvent.endChunkpositionY,
+				  endChunkpositionZ = markingEvent.endChunkpositionZ,
+				  endBlockpositionX = markingEvent.endBlockpositionX,
+				  endBlockpositionY = markingEvent.endBlockpositionY,
+				  endBlockpositionZ = markingEvent.endBlockpositionZ,
 
-				area["rights"] = {};
+				  rights = {},
 
-				area["createdBy"] = markingEvent.player:getPlayerDBID();
-				area["createdAt"] = nil;  -- ???
+				  createdBy = playerId,
+				  createdAt = os.time(),
+
+				  modifiedBy = playerId,
+				  modifiedAt = os.time()
+				};
 
 				adjustAreaPositions(area);
 				calculateGlobalAreaPosition(area);
 
-				database:queryupdate("INSERT INTO areas(name, startChunkpositionX, startChunkpositionY, startChunkpositionZ, startBlockpositionX, startBlockpositionY, startBlockpositionZ, endChunkpositionX, endChunkpositionY, endChunkpositionZ, endBlockpositionX, endBlockpositionY, endBlockpositionZ, playerID) VALUES ('".. string.sub(event.command, 13) .."', '".. area["startChunkpositionX"] .."', '".. area["startChunkpositionY"] .."', '".. area["startChunkpositionZ"] .."', '".. area["startBlockpositionX"] .."', '".. area["startBlockpositionY"] .."', '".. area["startBlockpositionZ"] .."', '".. area["endChunkpositionX"] .."', '".. area["endChunkpositionY"] .."', '".. area["endChunkpositionZ"] .."', '".. area["endBlockpositionX"] .."', '".. area["endBlockpositionY"] .."', '".. area["endBlockpositionZ"] .."', '".. markingEvent.player:getPlayerDBID() .."')");
+				database:queryupdate("INSERT INTO areas (name, startChunkpositionX, startChunkpositionY, startChunkpositionZ, startBlockpositionX, startBlockpositionY, startBlockpositionZ, endChunkpositionX, endChunkpositionY, endChunkpositionZ, endBlockpositionX, endBlockpositionY, endBlockpositionZ, createdBy, createdAt, modifiedBy, modifiedAt) VALUES ('".. string.sub(event.command, 13) .."', '".. area["startChunkpositionX"] .."', '".. area["startChunkpositionY"] .."', '".. area["startChunkpositionZ"] .."', '".. area["startBlockpositionX"] .."', '".. area["startBlockpositionY"] .."', '".. area["startBlockpositionZ"] .."', '".. area["endChunkpositionX"] .."', '".. area["endChunkpositionY"] .."', '".. area["endChunkpositionZ"] .."', '".. area["endBlockpositionX"] .."', '".. area["endBlockpositionY"] .."', '".. area["endBlockpositionZ"] .."', '".. playerId .."', NOW(), '".. playerId .."', NOW())");
 				local insertID = database:getLastInsertID();
 				area["id"] = insertID;
 				areas[insertID] = area;
@@ -136,7 +141,7 @@ local function areaCreate(event, args, flags)
 			end
 		end);
 	else
-		event.player:sendTextMessage("[#FF0000]Use /area create [AreaName]");
+		event.player:sendTextMessage("[#FF0000]Use /area create <name>");
 	end
 
 end

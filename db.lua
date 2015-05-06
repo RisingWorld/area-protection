@@ -1,6 +1,25 @@
 
 
+local DATE_TIME_PATTERN = "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)";
+
+
 database = getDatabase();
+
+
+--- Parse a timestamp from string
+-- @param datetime   The string in a "yyyy-mm-dd hh:mm:ss" format
+-- @return The timestamp integer
+function parseDateTime(datetime)
+  if not datetime then
+    return nil;
+  end
+
+  -- Assuming a date pattern like: yyyy-mm-dd hh:mm:ss
+  local Y, M, D, h, m, s = datetime:match(DATE_TIME_PATTERN);
+
+  return os.time({year = Y, month = M, day = D, hour = H, min = m, sec = s});
+end
+
 
 
 

@@ -3,6 +3,7 @@
 --world = getWorld();
 
 -- Includes
+include("colors/colors.lua");
 include("i18n/i18n.lua");
 include("db.lua");
 include("groups.lua");
