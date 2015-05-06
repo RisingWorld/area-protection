@@ -28,7 +28,7 @@ function onPlayerConnect(event)
 	event.player:setAttribute("areaStateLabel", label);
 
 end
---addEvent("PlayerConnect", onPlayerConnect);
+addEvent("PlayerConnect", onPlayerConnect);
 
 
 --- Player spawn event.
@@ -54,74 +54,69 @@ end
 -- This event is called everytime the player changes his position.
 -- @param event The event object. Cancel the event to teleport the player back to his old position
 function onPlayerChangePosition(event)
-	local areaID = event.player:getAttribute("areaID");
+	local areaId = event.player:getAttribute("areaId");
+	local areaGroup = event.player:getAttribute("areaGroup");
 	local playerAreas = event.player:getAttribute("areas");
-	if areaID ~= nil then
-		if AreaUtils:isPointInArea3D(event.player:getPlayerPosition(), areas[areaID]["startChunkpositionX"], areas[areaID]["startChunkpositionY"], areas[areaID]["startChunkpositionZ"], areas[areaID]["startBlockpositionX"], areas[areaID]["startBlockpositionY"], areas[areaID]["startBlockpositionZ"], areas[areaID]["endChunkpositionX"], areas[areaID]["endChunkpositionY"], areas[areaID]["endChunkpositionZ"], areas[areaID]["endBlockpositionX"], areas[areaID]["endBlockpositionY"], areas[areaID]["endBlockpositionZ"]) == false	then
-			local group = event.player:getAttribute("areaGroup");
-			if group["CanLeave"] == false then
+	local label = event.player:getAttribute("areaLabel");
+	local group;
+
+	for key,value in pairs(areas) do
+		if AreaUtils:isPointInArea3D(event.player:getPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
+			group = value["rights"][event.player:getDBID()] or defaultGroup;
+
+			if table.contains(playerAreas, key) == false then
+				if group["CanEnter"] == false then
+					event:setCancel(true);
+					-- TODO: if player is inside area (i.e. teleport), move player outside now
+					return;
+				end
+
+				-- entering area
+				areaId = key;
+				areaGroup = group;
+
+				table.insert(playerAreas, key); -- push area on top of stack
+			end
+
+		elseif areaId and (areaId == key) then
+			-- we moved out of the current area
+
+			if areaGroup["CanLeave"] == false then
 				event:setCancel(true);
 			else
-				tableRemove(playerAreas, areaID);
-				--event.player:sendYellMessage("LEAVE AREA " .. areas[areaID]["areaName"]);
-				local label = event.player:getAttribute("areaLabel");
 				local stop = false;
-				while stop ~= true do
-					if #playerAreas ~= 0 then
-						if areas[playerAreas[#playerAreas]] ~= nil then
-							event.player:setAttribute("areaID", playerAreas[#playerAreas]);
-							local group = areas[playerAreas[#playerAreas]]["rights"][event.player:getPlayerDBID()];
-							if group == nil then
-								group = defaultGroup;
-							end
-							event.player:setAttribute("areaGroup", group);
-							label:setText(areas[playerAreas[#playerAreas]]["areaName"]);
-							stop = true;
-						else
-							table.remove(playerAreas);
-						end
-					else
-						event.player:setAttribute("areaID", nil);
-						event.player:setAttribute("areaGroup", nil);
-						label:setVisible(false);
+
+				-- filter out this area off the queue
+				table.removeAll(playerAreas, key);
+				areaId = nil;
+				areaGroup = nil;
+
+				while stop ~= true and #playerAreas > 0 do
+					if areas[playerAreas[#playerAreas]] ~= nil then
+						areaId = playerAreas[#playerAreas];
+						areaGroup = areas[areaId]["rights"][event.player:getDBID()] or defaultGroup;
 						stop = true;
+					else
+						table.remove(playerAreas);  -- pop area off the stack
 					end
 				end
 			end
-		else
-			local group = areas[areaID]["rights"][event.player:getPlayerDBID()];
-			if group == nil then
-				group = defaultGroup;
-			end
-			event.player:setAttribute("areaGroup", group);
 		end
 	end
-	for key,value in pairs(areas) do
-		if AreaUtils:isPointInArea3D(event.player:getPlayerPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
-			local group = value["rights"][event.player:getPlayerDBID()];
-			if group == nil then
-				group = defaultGroup;
-			end
 
-			if group["CanEnter"] == false then
-				event:setCancel(true);
-				return;
-			else
-				if tableContains(playerAreas, key) == false then
-					--event.player:sendYellMessage("ENTER AREA " .. value["areaName"]);
-					local label = event.player:getAttribute("areaLabel");
-					label:setText(value["areaName"]);
-					label:setVisible(true);
-					event.player:setAttribute("areaGroup", group);
-					event.player:setAttribute("areaID", key);
-					table.insert(playerAreas, key);
-				end
-			end
-		end
+	if areaId then
+		label:setText(areas[areaId]["name"]);
+		label:setVisible(true);
+	else
+		label:setText("");
+		label:setVisible(false);
 	end
+
+	event.player:setAttribute("areaId", areaId);
+	event.player:setAttribute("areaGroup", areaGroup);
 	event.player:setAttribute("areas", playerAreas);
 end
---addEvent("PlayerChangePosition", onPlayerChangePosition);
+addEvent("PlayerChangePosition", onPlayerChangePosition);
 
 --- Player enter worldpart event.
 -- This event is triggered when the player enters a new worldpart (a worldpart is defined by 64x64 chunks).
