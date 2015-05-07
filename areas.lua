@@ -1,6 +1,38 @@
 
 areas = {};
 
+-- The base area id value when calling player:createArea
+local baseAreaId = 1000000;
+
+local DEFAULT_AREA_COLOR = Color.new(0, 1, 1); -- white
+
+
+
+--- Return the color of an area for the given group. The color returned will be
+--- a variant of the color defined for the player's group.
+-- @param group   the group to return the color for
+-- @return The color as a number (0xRRGGBBAA)
+local function getAreaColor(player, area)
+  local group = getPlayerGroupInArea(player, area);
+  local hueOffset = math.random(-10, 10);  -- delta angle in degrees
+  local lightness = 0.8 + (math.random() * 0.4); -- multiplier (pivot = 1.0)
+  local a = math.random(90, 120);   -- 0 .. 255
+
+  --local r1, g1, b1 = group["areaColor"]:toRGB();
+  local color = group and group["areaColor"]:hueOffset(hueOffset):lightenBy(lightness) or DEFAULT_AREA_COLOR;
+  local r, g, b = color:toRGB();
+
+  --print("Get area color "..
+  --  group["areaColor"].H ..",".. group["areaColor"].S ..",".. group["areaColor"].L .." ("..
+  --    math.floor(r1*255) ..",".. math.floor(g1*255) ..",".. math.floor(b1*255) ..",".. a ..")"..
+  --  " to Hue:".. hueOffset .." and Lightness:".. lightness .." = "..
+  --  color.H ..",".. color.S ..",".. color.L .." ("..
+  --    math.floor(r*255) ..",".. math.floor(g*255) ..",".. math.floor(b*255) ..",".. a .. ")");
+
+  -- 32-bit integer : rrrrrrrr gggggggg bbbbbbbb aaaaaaaa
+  return (math.floor(r*255) * 16777216) + (math.floor(g*255) * 65536) + (math.floor(b*255) * 256) + a;
+end
+
 
 --- Calculates the "global" start- and endposition of an area.
 -- @param area The area object
@@ -11,6 +43,47 @@ local function calculateGlobalAreaPosition(area)
   area["globalEndPositionX"]   = ChunkUtils:getGlobalBlockPositionX(area["endChunkpositionX"], area["endBlockpositionX"]);
   area["globalEndPositionY"]   = ChunkUtils:getGlobalBlockPositionY(area["endChunkpositionY"], area["endBlockpositionY"]);
   area["globalEndPositionZ"]   = ChunkUtils:getGlobalBlockPositionZ(area["endChunkpositionZ"], area["endBlockpositionZ"]);
+end
+
+
+--- Adjusts the position values of an area.
+--- I.e. the start- and endposition will be swapped, if the
+--- endposition is smaller than the startposition.
+-- @param area The area object
+local function adjustAreaPositions(area)
+  local sx = ChunkUtils:getGlobalBlockPositionX(area["startChunkpositionX"], area["startBlockpositionX"]);
+  local sy = ChunkUtils:getGlobalBlockPositionY(area["startChunkpositionY"], area["startBlockpositionY"]);
+  local sz = ChunkUtils:getGlobalBlockPositionZ(area["startChunkpositionZ"], area["startBlockpositionZ"]);
+  local ex = ChunkUtils:getGlobalBlockPositionX(area["endChunkpositionX"], area["endBlockpositionX"]);
+  local ey = ChunkUtils:getGlobalBlockPositionY(area["endChunkpositionY"], area["endBlockpositionY"]);
+  local ez = ChunkUtils:getGlobalBlockPositionZ(area["endChunkpositionZ"], area["endBlockpositionZ"]);
+
+  if sx > ex then
+    local t = area["startChunkpositionX"];
+    area["startChunkpositionX"] = area["endChunkpositionX"];
+    area["endChunkpositionX"] = t;
+    t = area["startBlockpositionX"];
+    area["startBlockpositionX"] = area["endBlockpositionX"];
+    area["endBlockpositionX"] = t;
+  end
+
+  if sy > ey then
+    local t = area["startChunkpositionY"];
+    area["startChunkpositionY"] = area["endChunkpositionY"];
+    area["endChunkpositionY"] = t;
+    t = area["startBlockpositionY"];
+    area["startBlockpositionY"] = area["endBlockpositionY"];
+    area["endBlockpositionY"] = t;
+  end
+
+  if sz > ez then
+    local t = area["startChunkpositionZ"];
+    area["startChunkpositionZ"] = area["endChunkpositionZ"];
+    area["endChunkpositionZ"] = t;
+    t = area["startBlockpositionZ"];
+    area["startBlockpositionZ"] = area["endBlockpositionZ"];
+    area["endBlockpositionZ"] = t;
+  end
 end
 
 
@@ -54,47 +127,6 @@ function loadAreas()
 end
 
 
---- Adjusts the position values of an area.
--- I.e. the start- and endposition will be swapped, if the
--- endposition is smaller than the startposition.
--- @param area The area object
-function adjustAreaPositions(area)
-  local sx = ChunkUtils:getGlobalBlockPositionX(area["startChunkpositionX"], area["startBlockpositionX"]);
-  local sy = ChunkUtils:getGlobalBlockPositionY(area["startChunkpositionY"], area["startBlockpositionY"]);
-  local sz = ChunkUtils:getGlobalBlockPositionZ(area["startChunkpositionZ"], area["startBlockpositionZ"]);
-  local ex = ChunkUtils:getGlobalBlockPositionX(area["endChunkpositionX"], area["endBlockpositionX"]);
-  local ey = ChunkUtils:getGlobalBlockPositionY(area["endChunkpositionY"], area["endBlockpositionY"]);
-  local ez = ChunkUtils:getGlobalBlockPositionZ(area["endChunkpositionZ"], area["endBlockpositionZ"]);
-
-  if sx > ex then
-    local t = area["startChunkpositionX"];
-    area["startChunkpositionX"] = area["endChunkpositionX"];
-    area["endChunkpositionX"] = t;
-    t = area["startBlockpositionX"];
-    area["startBlockpositionX"] = area["endBlockpositionX"];
-    area["endBlockpositionX"] = t;
-  end
-
-  if sy > ey then
-    local t = area["startChunkpositionY"];
-    area["startChunkpositionY"] = area["endChunkpositionY"];
-    area["endChunkpositionY"] = t;
-    t = area["startBlockpositionY"];
-    area["startBlockpositionY"] = area["endBlockpositionY"];
-    area["endBlockpositionY"] = t;
-  end
-
-  if sz > ez then
-    local t = area["startChunkpositionZ"];
-    area["startChunkpositionZ"] = area["endChunkpositionZ"];
-    area["endChunkpositionZ"] = t;
-    t = area["startBlockpositionZ"];
-    area["startBlockpositionZ"] = area["endBlockpositionZ"];
-    area["endBlockpositionZ"] = t;
-  end
-end
-
-
 --- Returns the area at the provided position.
 -- @param chunkoffsetx The X offset position of the chunk
 -- @param chunkoffsety The Y offset position of the chunk
@@ -119,29 +151,48 @@ function getAreaAtPosition(chunkoffsetx, chunkoffsety, chunkoffsetz, blockpositi
 end
 
 
---- Return the color of an area for the given player. The color returned will be
---- a variant of the color defined for the player's group.
--- @param player  The target player
--- @param area    The area to return the color
--- @return The color as a number (0xRRGGBBAA)
-function getAreaColor(player, area)
-  local group = getPlayerGroupInArea(player, area);
-  local hueOffset = math.random(-10, 10);  -- delta angle in degrees
-  local lightness = 0.8 + (math.random() * 0.4); -- multiplier (pivot = 1.0)
-  local a = math.random(90, 120);   -- 0 .. 255
+--- Create a new area with the given name.
+-- @param event   The marking event status
+-- @param name    The area name
+function createArea(event, name)
+  local playerId = event.player:getDBID();
+  local area = {
+    name = name,
 
-  --local r1, g1, b1 = group["areaColor"]:toRGB();
-  local color = group["areaColor"]:hueOffset(hueOffset):lightenBy(lightness);
-  local r, g, b = color:toRGB();
+    startChunkpositionX = event.startChunkpositionX,
+    startChunkpositionY = event.startChunkpositionY,
+    startChunkpositionZ = event.startChunkpositionZ,
+    startBlockpositionX = event.startBlockpositionX,
+    startBlockpositionY = event.startBlockpositionY,
+    startBlockpositionZ = event.startBlockpositionZ,
 
-  --print("Get area color "..
-  --  group["areaColor"].H ..",".. group["areaColor"].S ..",".. group["areaColor"].L .." ("..
-  --    math.floor(r1*255) ..",".. math.floor(g1*255) ..",".. math.floor(b1*255) ..",".. a ..")"..
-  --  " to Hue:".. hueOffset .." and Lightness:".. lightness .." = "..
-  --  color.H ..",".. color.S ..",".. color.L .." ("..
-  --    math.floor(r*255) ..",".. math.floor(g*255) ..",".. math.floor(b*255) ..",".. a .. ")");
+    endChunkpositionX = event.endChunkpositionX,
+    endChunkpositionY = event.endChunkpositionY,
+    endChunkpositionZ = event.endChunkpositionZ,
+    endBlockpositionX = event.endBlockpositionX,
+    endBlockpositionY = event.endBlockpositionY,
+    endBlockpositionZ = event.endBlockpositionZ,
 
-  return (math.floor(r*255) * 16777216) + (math.floor(g*255) * 65536) + (math.floor(b*255) * 256) + a;
+    rights = {},
+
+    createdBy = playerId,
+    createdAt = os.time(),
+    modifiedBy = playerId,
+    modifiedAt = os.time()
+  };
+
+  adjustAreaPositions(area);
+  calculateGlobalAreaPosition(area);
+
+  database:queryupdate("INSERT INTO areas (name, startChunkpositionX, startChunkpositionY, startChunkpositionZ, startBlockpositionX, startBlockpositionY, startBlockpositionZ, endChunkpositionX, endChunkpositionY, endChunkpositionZ, endBlockpositionX, endBlockpositionY, endBlockpositionZ, createdBy, createdAt, modifiedBy, modifiedAt) VALUES ('".. string.sub(event.command, 13) .."', '".. area["startChunkpositionX"] .."', '".. area["startChunkpositionY"] .."', '".. area["startChunkpositionZ"] .."', '".. area["startBlockpositionX"] .."', '".. area["startBlockpositionY"] .."', '".. area["startBlockpositionZ"] .."', '".. area["endChunkpositionX"] .."', '".. area["endChunkpositionY"] .."', '".. area["endChunkpositionZ"] .."', '".. area["endBlockpositionX"] .."', '".. area["endBlockpositionY"] .."', '".. area["endBlockpositionZ"] .."', '".. playerId .."', CURRENT_TIMESTAMP, '".. playerId .."', CURRENT_TIMESTAMP)");
+
+  local insertID = database:getLastInsertID();
+
+  area["id"] = insertID;
+
+  areas[insertID] = area;
+
+  return insertID;
 end
 
 
@@ -154,24 +205,26 @@ end
 function updateCurrentArea(player)
   local areaChanged = false;
   local areaId = player:getAttribute("areaId");
-  local areaGroup = player:getAttribute("areaGroup");
   local playerAreas = player:getAttribute("areas");
-  local label = player:getAttribute("areaLabel");
-  local group;
+
+  if areaId and not areas[areaId] then
+    areaId = nil;
+    areaChanged = true;
+  end
 
   for key,value in pairs(areas) do
+    local group = getPlayerGroupInArea(player, area);
+
     if AreaUtils:isPointInArea3D(player:getPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
-      group = value["rights"][player:getDBID()] or defaultGroup;
 
       if table.contains(playerAreas, key) == false then
-        if group["CanEnter"] == false then
+        if group and group["canEnter"] == false then
           -- TODO: if player is inside area (i.e. teleport), move player outside now
           return false;
         end
 
         -- entering area
         areaId = key;
-        areaGroup = group;
         areaChanged = true;
         table.insert(playerAreas, key); -- push area on top of stack
       end
@@ -179,20 +232,19 @@ function updateCurrentArea(player)
     elseif areaId and (areaId == key) then
       -- we moved out of the current area
 
-      if areaGroup["CanLeave"] == false then
+      if group and group["canLeave"] == false then
+        -- TODO: hurt player and/or push back??
         return false;
       else
         local stop = false;
 
         areaId = nil;
-        areaGroup = nil;
         areaChanged = true;
         table.removeAll(playerAreas, key);
 
         while stop ~= true and #playerAreas > 0 do
           if areas[playerAreas[#playerAreas]] ~= nil then
             areaId = playerAreas[#playerAreas];
-            areaGroup = areas[areaId]["rights"][player:getDBID()] or defaultGroup;
             stop = true;
           else
             table.remove(playerAreas);  -- pop area off the stack
@@ -203,18 +255,136 @@ function updateCurrentArea(player)
   end
 
   if areaChanged == true then
-    if areaId then
-      label:setText(areas[areaId]["name"]);
-      label:setVisible(true);
-    else
-      label:setText("");
-      label:setVisible(false);
-    end
-
     player:setAttribute("areaId", areaId);
-    player:setAttribute("areaGroup", areaGroup);
     player:setAttribute("areas", playerAreas);
+
+    updateAreaLabel(player);
   end
 
   return true;
+end
+
+
+--- Update the label displaying the current area
+-- @param player The player to update
+function updateAreaLabel(player)
+  local areaId = player:getAttribute("areaId");
+  local label = player:getAttribute("areaLabel");
+
+  if areaId then
+    local group = getPlayerGroupInArea(player, areas[areaId]);
+
+    label:setText(areas[areaId]["name"] .. (group and (" [".. group["name"] .."]") or ""));
+    label:setVisible(true);
+  else
+    label:setText("");
+    label:setVisible(false);
+  end
+end
+
+
+
+--- Remove the specified area from the world
+-- @param areaId  The id of the area to remove
+-- @return True
+function removeArea(areaId)
+  database:queryupdate("DELETE FROM areas WHERE id='" .. areaId .. "'");
+  database:queryupdate("DELETE FROM rights WHERE areaId= '" .. areaId .. "'");
+
+  areas[areaId] = nil;
+
+  return true;
+end
+
+
+--- Show all areas to the given player
+-- @param player The player to show all areas
+function showAllAreaBoundaries(player)
+  local areasVisible = player:getAttribute("areasVisible");
+
+  if areasVisible ~= true then
+    local playerAreas = {};
+
+    areasVisible = {};
+
+    for key,area in pairs(areas) do
+      local areaId = baseAreaId + area["id"];
+
+      table.insert(areasVisible, areaId);
+      table.insert(playerAreas, {
+        areaId,
+
+        area["startChunkpositionX"],
+        area["startChunkpositionY"],
+        area["startChunkpositionZ"],
+
+        area["startBlockpositionX"],
+        area["startBlockpositionY"],
+        area["startBlockpositionZ"],
+
+        area["endChunkpositionX"],
+        area["endChunkpositionY"],
+        area["endChunkpositionZ"],
+
+        area["endBlockpositionX"],
+        area["endBlockpositionY"],
+        area["endBlockpositionZ"],
+
+        getAreaColor(player, area)
+      });
+    end
+
+    print("Showing ".. #playerAreas .." areas to ".. player:getName());
+
+    player:setAttribute("areasVisible", true);
+    player:createAreas(playerAreas);
+    player:showAreas(areasVisible);
+  end
+end
+
+
+--- Hide all areas from the given player
+-- @param player The player to hide all areas
+function hideAllAreaBoundaries(player)
+  local areasVisible = player:getAttribute("areasVisible");
+
+  if areasVisible == true then
+    local areaIds = {};
+
+    for key,area in pairs(areas) do
+      table.insert(areaIds, baseAreaId + area["id"]);
+    end
+
+    print("Hiding all areas from ".. player:getName());
+
+    player:setAttribute("areasVisible", false);
+    player:destroyAreas(areaIds);
+  end
+end
+
+
+--- Show the given area for the given player. If the area is already visible,
+--- it will be refreshed
+-- @param player The player to show the area to
+-- @param area The area to show
+function showAreaBoundaries(player, area)
+  local areasVisible = player:getAttribute("areasVisible");
+
+  if areasVisible == true then
+    player:destroyArea(baseAreaId + area["id"]);
+    player:createArea(baseAreaId + area["id"], area["startChunkpositionX"], area["startChunkpositionY"], area["startChunkpositionZ"], area["startBlockpositionX"], area["startBlockpositionY"], area["startBlockpositionZ"], area["endChunkpositionX"], area["endChunkpositionY"], area["endChunkpositionZ"], area["endBlockpositionX"], area["endBlockpositionY"], area["endBlockpositionZ"], getAreaColor(player, area));
+    player:showArea(baseAreaId + area["id"]);
+  end
+end
+
+
+--- Hide the given area from the given player.
+-- @param player The player to hide the area from
+-- @param areaId The area id to hide
+function hideAreaBoundaries(player, areaId)
+  local areasVisible = player:getAttribute("areasVisible");
+
+  if areasVisible == true then
+    player:destroyArea(baseAreaId + areaId);
+  end
 end

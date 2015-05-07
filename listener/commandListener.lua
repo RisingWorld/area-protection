@@ -1,6 +1,15 @@
 include("command-parser/parse-args.lua");
 
-local baseAreaId = 1000000;
+
+local function showStateLabel(player, msg)
+	if msg then
+    label:setText(i18n.t(player, msg));
+    label:setVisible(true);
+	else
+    label:setText("");
+    label:setVisible(false);
+	end
+end
 
 
 local function areaHelp(event, args)
@@ -11,83 +20,23 @@ local function areaHelp(event, args)
 end
 
 
---- Show all areas to the player
--- @param event  the event
-local function areaShow(event)
-	local playerAreas = {};
-	local areasVisible = event.player:getAttribute("areasVisible");
-
-	if areasVisible ~= true then
-		areasVisible = {};
-
-		for key,area in pairs(areas) do
-			local areaId = baseAreaId + area["id"];
-
-			table.insert(areasVisible, areaId);
-			table.insert(playerAreas, {
-				areaId,
-
-				area["startChunkpositionX"],
-				area["startChunkpositionY"],
-			  area["startChunkpositionZ"],
-
-				area["startBlockpositionX"],
-				area["startBlockpositionY"],
-				area["startBlockpositionZ"],
-
-				area["endChunkpositionX"],
-				area["endChunkpositionY"],
-				area["endChunkpositionZ"],
-
-				area["endBlockpositionX"],
-				area["endBlockpositionY"],
-				area["endBlockpositionZ"],
-
-				getAreaColor(event.player, area)
-			});
-		end
-
-		print("Showing ".. #playerAreas .." areas to ".. event.player:getName());
-
-		event.player:setAttribute("areasVisible", true);
-		event.player:createAreas(playerAreas);
-		event.player:showAreas(areasVisible);
-	end
-end
-
-
---- Hide all areas to the player
--- @param event  the event
-local function areaHide(event)
-	local areaIds = {};
-
-	for key,area in pairs(areas) do
-		table.insert(areaIds, baseAreaId + area["id"]);
-	end
-
-	event.player:destroyAreas(areaIds);
-	event.player:setAttribute("areasVisible", false);
-end
-
-
-local function areaSelect(event, args, flags)
-	-- This is a Callback function, so we have to provide a function as parameter
-	-- which is called when the callback is done
+local function areaSelect(event)
+	print("Selecting area");
 	event.player:enableMarkingSelector(function()
-		event.player:sendYellMessage("Select the area and type \"/createarea\" to save it");
+    showStateLabel(event.player, "select.start");
 	end);
-
 end
 
 
 local function areaCancel(event)
-	event.player:disableMarkingSelector(function ()
-
+	print("Canceling selection");
+	event.player:disableMarkingSelector(function (markingEvent)
+		showStateLabel();
 	end);
 end
 
 
-local function areaInfo(event, args, flags)
+local function areaInfo(event)
 
 	-- TODO
 
@@ -96,70 +45,47 @@ end
 
 local function areaCreate(event, args, flags)
 	if #args >= 1 then
-		-- Provide a Callback-function, since it can't be triggered immediately, only after we receive the response from the player
-		event.player:disableMarkingSelector(function(markingEvent)
+		event.player:getMarkingSelectorStatus(function(markingEvent)
 			if markingEvent ~= false then
-				local playerId = markingEvent.player:getDBID();
-				local area = {
-				  name = args[1],
-				  startChunkpositionX = markingEvent.startChunkpositionX,
-				  startChunkpositionY = markingEvent.startChunkpositionY,
-				  startChunkpositionZ = markingEvent.startChunkpositionZ,
-				  startBlockpositionX = markingEvent.startBlockpositionX,
-				  startBlockpositionY = markingEvent.startBlockpositionY,
-				  startBlockpositionZ = markingEvent.startBlockpositionZ,
+				local createdAreaId = createArea(markingEvent, args[1]);
 
-				  endChunkpositionX = markingEvent.endChunkpositionX,
-				  endChunkpositionY = markingEvent.endChunkpositionY,
-				  endChunkpositionZ = markingEvent.endChunkpositionZ,
-				  endBlockpositionX = markingEvent.endBlockpositionX,
-				  endBlockpositionY = markingEvent.endBlockpositionY,
-				  endBlockpositionZ = markingEvent.endBlockpositionZ,
+				if createdAreaId then
+				  local area = areas[createdAreaId];
 
-				  rights = {},
+				  for key,player in pairs(server:getPlayers()) do
+				  	showAreaBoundaries(player, area);
+				  end
 
-				  createdBy = playerId,
-				  createdAt = os.time(),
+					event.player:sendTextMessage("[#00FF00]Area created successfully!");
 
-				  modifiedBy = playerId,
-				  modifiedAt = os.time()
-				};
-
-				adjustAreaPositions(area);
-				calculateGlobalAreaPosition(area);
-
-				database:queryupdate("INSERT INTO areas (name, startChunkpositionX, startChunkpositionY, startChunkpositionZ, startBlockpositionX, startBlockpositionY, startBlockpositionZ, endChunkpositionX, endChunkpositionY, endChunkpositionZ, endBlockpositionX, endBlockpositionY, endBlockpositionZ, createdBy, createdAt, modifiedBy, modifiedAt) VALUES ('".. string.sub(event.command, 13) .."', '".. area["startChunkpositionX"] .."', '".. area["startChunkpositionY"] .."', '".. area["startChunkpositionZ"] .."', '".. area["startBlockpositionX"] .."', '".. area["startBlockpositionY"] .."', '".. area["startBlockpositionZ"] .."', '".. area["endChunkpositionX"] .."', '".. area["endChunkpositionY"] .."', '".. area["endChunkpositionZ"] .."', '".. area["endBlockpositionX"] .."', '".. area["endBlockpositionY"] .."', '".. area["endBlockpositionZ"] .."', '".. playerId .."', NOW(), '".. playerId .."', NOW())");
-				local insertID = database:getLastInsertID();
-				area["id"] = insertID;
-				areas[insertID] = area;
-
-				if event.player:getAttribute("areasVisible") == true then
-					event.player:createArea(baseAreaId + insertID, area["startChunkpositionX"], area["startChunkpositionY"], area["startChunkpositionZ"], area["startBlockpositionX"], area["startBlockpositionY"], area["startBlockpositionZ"], area["endChunkpositionX"], area["endChunkpositionY"], area["endChunkpositionZ"], area["endBlockpositionX"], area["endBlockpositionY"], area["endBlockpositionZ"], 0x0000ff77);
-					event.player:showArea(baseAreaId + insertID);
+					event.player:disableMarkingSelector(function (markingEvent)
+						showStateLabel();
+					end);
+				else
+					event.player:sendTextMessage("[#FF0000]Could not create area");
 				end
-				event.player:sendTextMessage("[#00FF00]Area successfully created!");
-			end
+  		end
 		end);
 	else
-		event.player:sendTextMessage("[#FF0000]Use /area create <name>");
+		event.player:sendTextMessage("[#FF0000]Missing <name> argument");
 	end
 
 end
 
 
-local function areaRemove(event, args, flags)
+local function areaRemove(event)
 	local areaId = event.player:getAttribute("areaId");
 	if areaId ~= nil then
-		database:queryupdate("DELETE FROM areas WHERE id= '" .. areaId .. "'");
-		database:queryupdate("DELETE FROM rights WHERE areaId= '" .. areaID .. "'");
+		if removeArea(areaId) == true then
 
-		areas[areaId] = nil;
-		event.player:setAttribute("areaId", nil);
-		event.player:setAttribute("areaGroup", nil);
-		event.player:destroyArea(areaId);
-		event.player:sendTextMessage("[#00FF00]Area successfully removed!");
-		if event.player:getAttribute("areasVisible") == true then
-			event.player:destroyArea(baseAreaId + areaId);
+		  for key,player in pairs(server:getPlayers()) do
+		  	hideAreaBoundaries(player, areaId);
+		  	updateCurrentArea(player);
+		  end
+
+		  event.player:sendTextMessage("[#00FF00]Area successfully removed!");
+		else
+			event.player:sendTextMessage("[#FF0000]Could not remove area");
 		end
 	else
 		event.player:sendTextMessage("[#FF0000]You must enter an area first!");
@@ -169,53 +95,66 @@ end
 
 
 local function areaGrant(event, args, flags)
-	if #cmd >= 3 then
-		local areaID = event.player:getAttribute("areaID");
-		if areaID ~= nil then
-			local group = getGroupByName(cmd[2]);
-			local player = server:getPlayerInformationFromDB(cmd[3]);
-			if group ~= nil then
-				if player ~= nil then
-					if areas[areaID]["rights"][player.dbID] == nil then
-						database:queryupdate("INSERT INTO rights ('areaID', 'playerID', 'group') VALUES ('".. areas[areaID]["id"] .."', '".. player.dbID .. "', '".. cmd[2] .. "')");
-					else
-						database:queryupdate("UPDATE rights SET 'group'='".. cmd[2] .."'");
-					end
-					areas[areaID]["rights"][player.dbID] = group;
+	if #args == 2 then
+		local areaId = event.player:getAttribute("areaId");
 
-					event.player:sendTextMessage("[#00FF00]Player \"" .. cmd[3] .. "\" successfully added to area (".. cmd[2] ..")!");
+		if areaId then
+			local player = string.lower(args[1]) == "me" and event.player or server:findPlayerByName(args[1]);
+			local group = getGroupByName(args[2]);
+
+			if not group then
+				event.player:sendTextMessage("[#FF0000]Unknown group");
+			elseif not player then
+				event.player:sendTextMessage("[#FF0000]Unknown player");
+			elseif grantPlayerRights(event.player, areas[areaId], player, group) then
+				showAreaBoundaries(player, areas[areaId]);
+				updateAreaLabel(player);
+
+				if player:getDBID() == event.player:getDBID() then
+					event.player:sendTextMessage("[#00FF00]You have been granted successfully!");
 				else
-					event.player:sendTextMessage("[#FF0000]Player \"" .. cmd[3] .. "\" not found!");
+					player:sendTextMessage("[#FFFF00]You have been granted access to [#8888FF]"..areas[areaId]["name"].."[#FFFF00] as [#8888FF]"..group["name"].."[#FFFF00] by [#FFFFFF]"..event.player.getName().."!");
+					event.player:sendTextMessage("[#00FF00]Player has been granted successfully!");
 				end
 			else
-				event.player:sendTextMessage("[#FF0000]Group \"" .. cmd[2] .. "\" not found!");
+				event.player:sendTextMessage("[#FF0000]Could not grant player to the area");
 			end
 		else
 			event.player:sendTextMessage("[#FF0000]You must enter an area first!");
 		end
 	else
-		event.player:sendTextMessage("[#FF0000]Use /addplayertoarea [GroupName] [PlayerName]");
+		event.player:sendTextMessage("[#FF0000]Usage: /area grant <playername>|me <group>");
 	end
 end
 
 
 local function areaRevoke(event, args, flags)
-	if #cmd >= 2 then
-		local areaID = event.player:getAttribute("areaID");
-		if areaID ~= nil then
-			local player = server:getPlayerInformationFromDB(cmd[2]);
-			if player ~= nil then
-				areas[areaID]["rights"][player.dbID] = nil;
-				database:queryupdate("DELETE FROM rights WHERE playerID= '" .. player.dbID .. "' AND areaID='" .. areaID .. "'");
-				event.player:sendTextMessage("[#00FF00]Player \"" .. cmd[2] .. "\" successfully removed from area!");
+	if #args == 1 then
+		local areaId = event.player:getAttribute("areaId");
+
+		if areaId then
+			local player = string.lower(args[1]) == "me" and event.player or server:findPlayerByName(args[1]);
+
+			if not player then
+				event.player:sendTextMessage("[#FF0000]Unknown player");
+			elseif revokePlayerRights(event.player, areas[areaId], player) then
+				showAreaBoundaries(player, areas[areaId]);
+				updateAreaLabel(player);
+
+				if player:getDBID() == event.player:getDBID() then
+					event.player:sendTextMessage("[#00FF00]You have been revoked successfully!");
+				else
+					player:sendTextMessage("[#FFFF00]You have been revoked access to [#8888FF]"..areas[areaId]["name"].."[#FFFF00] as [#8888FF]"..group["name"].."[#FFFF00]!");
+					event.player:sendTextMessage("[#00FF00]Player has been granted successfully!");
+				end
 			else
-				event.player:sendTextMessage("[#FF0000]Player \"" .. cmd[2] .. "\" not found!");
+
 			end
 		else
 			event.player:sendTextMessage("[#FF0000]You must enter an area first!");
 		end
 	else
-		event.player:sendTextMessage("[#FF0000]Use /removeplayerfromarea [PlayerName]");
+		event.player:sendTextMessage("[#FF0000]Usage: /area revoke <playername>|me");
 	end
 end
 
@@ -243,25 +182,25 @@ function onPlayerCommand(event)
       if cmd == "help" then
       	areaHelp(event, table.slice(args, 3));
 			elseif cmd == "show" then
-				areaShow(event);
+				showAllAreaBoundaries(event.player);
 			elseif cmd == "hide" then
-				areaHide(event);
+				hideAllAreaBoundaries(event.player);
 			elseif cmd == "info" then
-				if checkPlayerAccess(event.player, "info") then areaInfo(event, table.slice(args, 3), flags); end;
+				if checkPlayerAccess(event.player, "info") then areaInfo(event); end;
 			elseif cmd == "select" then
-				if checkPlayerAccess(event.player, "select") then areaSelect(event, table.slice(args, 3), flags); end;
+				if checkPlayerAccess(event.player, "select") then areaSelect(event); end;
 			elseif cmd == "cancel" then
 				areaCancel(event);
 			elseif cmd == "create" then
 				if checkPlayerAccess(event.player, "create") then areaCreate(event, table.slice(args, 3), flags); end;
 			elseif cmd == "remove" then
-				if checkPlayerAccess(event.player, "remove") then areaRemove(event, table.slice(args, 3), flags); end;
+				if checkPlayerAccess(event.player, "remove") then areaRemove(event, table.slice(args, 3)); end;
 			elseif cmd == "grant" then
 				if checkPlayerAccess(event.player, "grant") then areaGrant(event, table.slice(args, 3), flags); end;
-			elseif cmd == "remoke" then
+			elseif cmd == "revoke" then
 				if checkPlayerAccess(event.player, "revoke") then areaRevoke(event, table.slice(args, 3), flags); end;
 			else
-				event.player:sendTextMessage("[#B0B0B0]Unknown command");
+				event.player:sendTextMessage("[#FF0000]Unknown command");
 			end
 		end
 	end

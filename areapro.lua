@@ -1,6 +1,6 @@
 -- Global variables
---server = getServer();
---world = getWorld();
+server = getServer();
+world = getWorld();
 
 -- Includes
 include("colors/colors.lua");

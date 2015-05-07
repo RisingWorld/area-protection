@@ -23,3 +23,38 @@ function loadRights(areaId)
 
   return rights;
 end
+
+
+
+--- Grant a group to the target player in the specified area
+-- @param player  The player who's granting rights
+-- @param area    The target area
+-- @param targetPlayer  The player who's given rights to
+-- @param group   The group the target player is being assigned
+-- @return True if the player as successfully assigned
+function grantPlayerRights(player, area, targetPlayer, group)
+  -- revoke any rights, first (prevent duplicate entries)
+  revokePlayerRights(player, area, targetPlayer);
+
+  area["rights"][targetPlayer:getDBID()] = {
+    group      = group,
+    assignedBy = player:getDBID(),
+    assignedAt = os.time()
+  };
+
+  return database:queryupdate("INSERT INTO rights (areaId, playerId, groupName, assignedBy, assignedAt) "..
+    "VALUES (".. area["id"] ..", ".. targetPlayer:getDBID() ..", '".. group["name"] .. "', ".. player:getDBID() ..", CURRENT_TIMESTAMP)");
+end
+
+
+--- Revoke any right to the target player in the specified area
+-- @param player  The player who's revoking rights
+-- @param area    The target area
+-- @param targetPlayer  The player who's rights are being revoked
+-- @return True if all rights have been revoked.
+function revokePlayerRights(player, area, targetPlayer)
+  area["rights"][targetPlayer:getDBID()] = nil;
+
+  return database:queryupdate("DELETE FROM rights "..
+    "WHERE areaId = ".. area["id"] .." AND playerId = ".. targetPlayer:getDBID());
+end

@@ -81,7 +81,7 @@ function onPlayerBlockPlace(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["placeBlock"] == false and table.contains(group["blockFilter"], tostring(event.newBlockID)) == false then
+		if not group or (group["placeBlock"] == false and table.contains(group["blockFilter"], tostring(event.newBlockID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -96,7 +96,7 @@ function onPlayerBlockDestroy(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["destroyBlock"] == false and table.contains(group["blockFilter"], tostring(event.oldBlockID)) == false then
+		if not group or (group["destroyBlock"] == false and table.contains(group["blockFilter"], tostring(event.oldBlockID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -111,7 +111,7 @@ function onPlayerConstructionPlace(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["placeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false then
+		if not group or (group["placeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -126,7 +126,7 @@ function onPlayerConstructionRemove(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["removeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionId)) == false then
+		if not group or (group["removeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionId)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -141,7 +141,7 @@ function onPlayerConstructionDestroy(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["destroyConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false then
+		if not group or (group["destroyConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -156,7 +156,7 @@ function onPlayerObjectPlace(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["placeObjects"] == false and table.contains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false then
+		if not group or (group["placeObjects"] == false and table.contains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -171,7 +171,7 @@ function onPlayerObjectRemove(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
+		if not group or (group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -186,7 +186,7 @@ function onPlayerObjectDestroy(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["destroyObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
+		if not group or (group["destroyObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -201,7 +201,7 @@ function onPlayerObjectStatusChange(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["changeObjectStatus"] == false then
+		if not group or (group["changeObjectStatus"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -216,7 +216,7 @@ function onPlayerObjectPickup(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["pickupObject"] == false then
+		if not group or (group["pickupObject"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -231,7 +231,7 @@ function onPlayerTerrainFill(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["fillTerrain"] == false then
+		if not group or (group["fillTerrain"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -246,7 +246,7 @@ function onPlayerTerrainDestroy(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["destroyTerrain"] == false then
+		if not group or (group["destroyTerrain"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -261,7 +261,7 @@ function onPlayerChestPlace(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["placeObjects"] == false and tableContains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false then
+		if not group or (group["placeObjects"] == false and tableContains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -277,7 +277,7 @@ function onPlayerChestRemove(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false then
+		if not group or (group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
@@ -293,7 +293,7 @@ function onPlayerVegetationPlace(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["placeVegetation"] == false then
+		if not group or (group["placeVegetation"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -308,7 +308,7 @@ function onPlayerVegetationDestroy(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["removeVegetation"] == false then
+		if not group or (group["removeVegetation"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -323,7 +323,7 @@ function onPlayerVegetationPickup(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["pickupVegetation"] == false then
+		if not group or (group["pickupVegetation"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -338,7 +338,7 @@ function onPlayerGrassRemove(event)
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
 	if area ~= nil then
 		local group = getPlayerGroupInArea(event.player, area);
-		if group["cutGrass"] == false then
+		if not group or (group["cutGrass"] == false) then
 			event:setCancel(true);
 		end
 	end
@@ -354,7 +354,7 @@ function onInventoryToChest(event)
 		local area = getAreaAtPosition(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
 		if area ~= nil then
 			local group = getPlayerGroupInArea(event.player, area);
-			if group["inventoryToChest"] == false then
+			if not group or (group["inventoryToChest"] == false) then
 				event:setCancel(true);
 			elseif group["chestToInventory"] == false then
 				local serverchest = server:getChest(event.chestID);
@@ -380,7 +380,7 @@ function onChestToInventory(event)
 		local area = getAreaAtPosition(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
 		if area ~= nil then
 			local group = getPlayerGroupInArea(event.player, area);
-			if group["chestToInventory"] == false then
+			if not group or (group["chestToInventory"] == false) then
 				event:setCancel(true);
 			end
 		end
@@ -397,7 +397,7 @@ function onChestItemDrop(event)
 		local area = getAreaAtPosition(chest["chunkOffsetX"], chest["chunkOffsetY"], chest["chunkOffsetZ"], chest["positionX"], chest["positionY"], chest["positionZ"]);
 		if area ~= nil then
 			local group = getPlayerGroupInArea(event.player, area);
-			if group["chestDrop"] == false then
+			if not group or (group["chestDrop"] == false) then
 				event:setCancel(true);
 			end
 		end

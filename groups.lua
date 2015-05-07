@@ -89,5 +89,7 @@ end
 -- @param area The area object
 -- @return The group of the player in the specified area
 function getPlayerGroupInArea(player, area)
-  return area and (area["rights"][player:getDBID()] or defaultGroup);
+  local areaGroup = area and area["rights"][player:getDBID()];
+
+  return areaGroup and areaGroup["group"];
 end
