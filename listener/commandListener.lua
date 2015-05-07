@@ -95,12 +95,12 @@ end
 
 
 local function areaGrant(event, args, flags)
-	if #args == 2 then
+	if #args == 1 or #args == 2 then
 		local areaId = event.player:getAttribute("areaId");
 
 		if areaId then
-			local player = string.lower(args[1]) == "me" and event.player or server:findPlayerByName(args[1]);
-			local group = getGroupByName(args[2]);
+			local group = getGroupByName(args[1]);
+			local player = args[2] and server:findPlayerByName(args[2]) or event.player;
 
 			if not group then
 				event.player:sendTextMessage("[#FF0000]Unknown group");
@@ -123,17 +123,17 @@ local function areaGrant(event, args, flags)
 			event.player:sendTextMessage("[#FF0000]You must enter an area first!");
 		end
 	else
-		event.player:sendTextMessage("[#FF0000]Usage: /area grant <playername>|me <group>");
+		event.player:sendTextMessage("[#FF0000]Usage: /area grant <group> [playername]");
 	end
 end
 
 
 local function areaRevoke(event, args, flags)
-	if #args == 1 then
+	if #args < 2 then
 		local areaId = event.player:getAttribute("areaId");
 
 		if areaId then
-			local player = string.lower(args[1]) == "me" and event.player or server:findPlayerByName(args[1]);
+			local player = args[1] and server:findPlayerByName(args[1]) or event.player;
 
 			if not player then
 				event.player:sendTextMessage("[#FF0000]Unknown player");
