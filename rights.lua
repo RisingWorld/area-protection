@@ -7,18 +7,14 @@
 -- @return table  the rights to the given area id
 function loadRights(areaId)
   local rights = {};
-  local result = database:query("SELECT * FROM rights WHERE areaId='"..areaId.."';");
+  local result = database:query("SELECT * FROM rights WHERE areaId="..areaId);
 
   while result:next() do
-    local group = getGroupByName(result:getString("groupName"));
-
-    if group ~= nil then
-      rights[result:getInt("playerId")] = {
-        group      = group,
-        assignedBy = result:getInt("assignedBy"),
-        assignedAt = result:getString("assignedAt")
-      };
-    end
+    rights[result:getInt("playerId")] = {
+      group      = getGroupByName(result:getString("groupName")) or defaultGroup,
+      assignedBy = result:getInt("assignedBy"),
+      assignedAt = parseDateTime(result:getString("assignedAt"))
+    };
   end
 
   return rights;

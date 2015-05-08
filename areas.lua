@@ -116,13 +116,20 @@ function loadAreas()
       createdBy           = result:getInt("createdBy"),
       createdAt           = parseDateTime(result:getString("createdAt")),
       modifiedBy          = result:getInt("modifiedBy"),
-      modifiedAt          = parseDateTime(result:getString("modifiedAt")),
-
-      rights = loadRights(result:getInt("id"))
+      modifiedAt          = parseDateTime(result:getString("modifiedAt"))
     };
 
     calculateGlobalAreaPosition(area);
     areas[area["id"]] = area;
+
+    print("Area loaded : ".. area["name"] .." (".. area["id"] ..")");
+  end
+
+  -- loading rights
+  -- NOTE : couldn't do that while loading areas because it creates conflicts
+  --        when using more than one resultset at the same time.
+  for areaId,area in pairs(areas) do
+    area["rights"] = loadRights(areaId);
   end
 end
 
@@ -334,7 +341,7 @@ function showAllAreaBoundaries(player)
       });
     end
 
-    print("Showing ".. #playerAreas .." areas to ".. player:getName());
+    --print("Showing ".. #playerAreas .." areas to ".. player:getName());
 
     player:setAttribute("areasVisible", true);
     player:createAreas(playerAreas);
@@ -355,7 +362,7 @@ function hideAllAreaBoundaries(player)
       table.insert(areaIds, baseAreaId + area["id"]);
     end
 
-    print("Hiding all areas from ".. player:getName());
+    --print("Hiding all areas from ".. player:getName());
 
     player:setAttribute("areasVisible", false);
     player:destroyAreas(areaIds);
@@ -387,4 +394,36 @@ function hideAreaBoundaries(player, areaId)
   if areasVisible == true then
     player:destroyArea(baseAreaId + areaId);
   end
+end
+
+
+
+--- Get information about the area. The amount of information returned depends
+--- on which group the specified player belongs to.
+-- @param player The player to return the information for
+-- @param area The area to return information from
+-- @return table An array of strings
+function getAreaInfo(player, area)
+
+  -- TODO: fix this damn piece of code
+  -- TODO: restrict amount of information based on player group in the area
+
+  local areaCreatedBy = server:findPlayerByID(area["createdBy"]); --- return nil ????
+  local areaCreatedAt = area["createdAt"] and os.date("%Y-%m-%d", area["createdAt"]) or "n/a";
+
+  local info = {
+    "\"".. area["name"] .."\" was created on ".. areaCreatedAt .." by ".. areaCreatedBy:getName()
+  };
+
+  for playerId,areaGroup in pairs(area["rights"]) do
+    local assignedPlayer = server:findPlayerByID(playerId):getName();   --- ERROR calling getName() on nil ????
+    local assignedByPlayer = areaGroup["assignedBy"] and server:findPlayerByID(areaGroup["assignedBy"]):getName() or "n/a";
+    local assignedDate = areaGroup["assignedAt"] and os.date("%Y-%m-%d", areaGroup["assignedAt"]) or "n/a";
+
+    -- TODO : do not show by who or when if the player is member of a "lesser" group
+
+    table.insert(info, assignedPlayer["name"] .." was granted ".. areaGroup["group"]["name"] .." by ".. assignedByPlayer["name"] .." on ".. assignedDate);
+  end
+
+  return info;
 end

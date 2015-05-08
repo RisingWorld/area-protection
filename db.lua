@@ -17,7 +17,7 @@ function parseDateTime(datetime)
   -- Assuming a date pattern like: yyyy-mm-dd hh:mm:ss
   local Y, M, D, h, m, s = datetime:match(DATE_TIME_PATTERN);
 
-  return os.time({year = Y, month = M, day = D, hour = H, min = m, sec = s});
+  return Y and os.time({year = Y, month = M, day = D, hour = H, min = m, sec = s});
 end
 
 
@@ -93,13 +93,17 @@ function update20(currentVersion)
     database:queryupdate("DROP TABLE rights;");
     database:queryupdate("ALTER TABLE rights_tmp RENAME TO rights;");
 
-    database:queryupdate("DROP TABLE chests;");
+    database:queryupdate("DROP TABLE IF EXISTS chests;");
 
     -- adjust rights
     database:queryupdate("UPDATE rights "..
                            "SET groupName = 'landlord' "..
                          "WHERE groupName = 'Admin' "..
                             "OR groupName = 'Owner';");
+
+    database:queryupdate("UPDATE rights "..
+                           "SET groupName = 'guest' "..
+                         "WHERE groupName = 'Guest';");
 
 
     currentVersion = setSchemaVersion(schemaVersion);

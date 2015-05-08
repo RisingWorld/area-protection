@@ -86,7 +86,7 @@ function onPlayerBlockPlace(event)
 		end
 	end
 end
---addEvent("PlayerBlockPlace", onPlayerBlockPlace);
+addEvent("PlayerBlockPlace", onPlayerBlockPlace);
 
 --- Player destroy block event.
 -- This event is triggered when the player destroys a block.
@@ -94,14 +94,14 @@ end
 function onPlayerBlockDestroy(event)
 	print("PlayerBlockDestroy: ".. event.oldBlockID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["destroyBlock"] == false and table.contains(group["blockFilter"], tostring(event.oldBlockID)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerBlockDestroy", onPlayerBlockDestroy);
+addEvent("PlayerBlockDestroy", onPlayerBlockDestroy);
 
 --- Player place construction event.
 -- This event is triggered when the player places an construction element (e.g. wooden plank).
@@ -109,14 +109,14 @@ end
 function onPlayerConstructionPlace(event)
 	print("PlayerConstructionPlace: ".. event.constructionID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["placeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerConstructionPlace", onPlayerConstructionPlace);
+addEvent("PlayerConstructionPlace", onPlayerConstructionPlace);
 
 --- Player remove construction event.
 -- This event is triggered when the player deconstructs a construction element (e.g. wooden plank).
@@ -124,14 +124,14 @@ end
 function onPlayerConstructionRemove(event)
 	print("PlayerConstructionRemove: ".. event.constructionID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["removeConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionId)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerConstructionRemove", onPlayerConstructionRemove);
+addEvent("PlayerConstructionRemove", onPlayerConstructionRemove);
 
 --- Player destroy construction event.
 -- This event is triggered when the player destroys a construction element (e.g. wooden plank).
@@ -139,14 +139,14 @@ end
 function onPlayerConstructionDestroy(event)
 	print("PlayerConstructionDestroy: ".. event.constructionID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["destroyConstructions"] == false and table.contains(group["constructionsFilter"], tostring(event.constructionID)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerConstructionDestroy", onPlayerConstructionDestroy);
+addEvent("PlayerConstructionDestroy", onPlayerConstructionDestroy);
 
 --- Player place object event.
 -- This event is triggered when the player places an object (e.g. furniture).
@@ -154,14 +154,14 @@ end
 function onPlayerObjectPlace(event)
 	print("PlayerObjectPlace: ".. event.objectTypeID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["placeObjects"] == false and table.contains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerObjectPlace", onPlayerObjectPlace);
+addEvent("PlayerObjectPlace", onPlayerObjectPlace);
 
 --- Player remove object event.
 -- This event is triggered when the player deconstructs an object (e.g. furniture).
@@ -169,14 +169,14 @@ end
 function onPlayerObjectRemove(event)
 	print("PlayerObjectRemove: ".. event.objectTypeID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerObjectRemove", onPlayerObjectRemove);
+addEvent("PlayerObjectRemove", onPlayerObjectRemove);
 
 --- Player destroy object event.
 -- This event is triggered when the player destroys an object (e.g. furniture).
@@ -184,14 +184,14 @@ end
 function onPlayerObjectDestroy(event)
 	print("PlayerObjectDestroy: ".. event.objectTypeID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["destroyObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerObjectDestroy", onPlayerObjectDestroy);
+addEvent("PlayerObjectDestroy", onPlayerObjectDestroy);
 
 --- Player change objectstatus event.
 -- This event is triggered when the status of an object changes - e.g. when a door is opened.
@@ -199,14 +199,14 @@ end
 function onPlayerObjectStatusChange(event)
 	print("PlayerObjectStatusChange: ".. event.objectTypeID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["changeObjectStatus"] == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerObjectStatusChange", onPlayerObjectStatusChange);
+addEvent("PlayerObjectStatusChange", onPlayerObjectStatusChange);
 
 --- Player object pickup event.
 -- This event is triggered when the player picks up an object - e.g. a torch.
@@ -214,14 +214,14 @@ end
 function onPlayerObjectPickup(event)
 	print("PlayerObjectPickup: ".. event.objectTypeID);
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["pickupObject"] == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerObjectPickup", onPlayerObjectPickup);
+addEvent("PlayerObjectPickup", onPlayerObjectPickup);
 
 --- Player terrain fill up event.
 -- This event is triggered when the player fills up the terrain - i.e. when he places dirt etc.
@@ -229,14 +229,14 @@ end
 function onPlayerTerrainFill(event)
 	print("PlayerTerrainFill");
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["fillTerrain"] == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerTerrainFill", onPlayerTerrainFill);
+addEvent("PlayerTerrainFill", onPlayerTerrainFill);
 
 --- Player terrain destroy event.
 -- This event is triggered when the player destroys the terrain - i.e. when he is digging
@@ -244,14 +244,74 @@ end
 function onPlayerTerrainDestroy(event)
 	print("PlayerTerrainDestroy");
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["destroyTerrain"] == false) then
 			event:setCancel(true);
 		end
 	end
 end
---addEvent("PlayerTerrainDestroy", onPlayerTerrainDestroy);
+addEvent("PlayerTerrainDestroy", onPlayerTerrainDestroy);
+
+--- Player vegetation place event.
+-- This event is triggered when the player places a vegetation (e.g. a sapling)
+-- @param event The event object. Cancel the event to prevent the player from placing vegetations
+function onPlayerVegetationPlace(event)
+	print("PlayerVegetationPlace");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	if area then
+		local group = getPlayerGroupInArea(event.player, area);
+		if not group or (group["placeVegetation"] == false) then
+			event:setCancel(true);
+		end
+	end
+end
+addEvent("PlayerVegetationPlace", onPlayerVegetationPlace);
+
+--- Player vegetation destroy event.
+-- This event is triggered when the player destroys vegetation (e.g. cut a tree).
+-- @param event The event object. Cancel the event to prevent the player from destroying vegetations
+function onPlayerVegetationDestroy(event)
+	print("PlayerVegetationDestroy");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	if area then
+		local group = getPlayerGroupInArea(event.player, area);
+		if not group or (group["removeVegetation"] == false) then
+			event:setCancel(true);
+		end
+	end
+end
+addEvent("PlayerVegetationDestroy", onPlayerVegetationDestroy);
+
+--- Player vegetation pickup event.
+-- This event is triggered when the player picks up vegetation (e.g. flowers).
+-- @param event The event object. Cancel the event to prevent the player from picking up vegetations
+function onPlayerVegetationPickup(event)
+	print("PlayerVegetationPickup");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
+	if area then
+		local group = getPlayerGroupInArea(event.player, area);
+		if not group or (group["pickupVegetation"] == false) then
+			event:setCancel(true);
+		end
+	end
+end
+addEvent("PlayerVegetationPickup", onPlayerVegetationPickup);
+
+--- Player grass remove event.
+-- This event is triggered when the player cuts grass.
+-- @param event The event object. Cancel the event to prevent the player from cutting grass
+function onPlayerGrassRemove(event)
+	print("PlayerGrassRemove");
+	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
+	if area then
+		local group = getPlayerGroupInArea(event.player, area);
+		if not group or (group["cutGrass"] == false) then
+			event:setCancel(true);
+		end
+	end
+end
+addEvent("PlayerGrassRemove", onPlayerGrassRemove);
 
 --- Player chest place event.
 -- This event is triggered when the player places a chest (every object with storage [e.g. also kitchenettes] is considered as a chest).
@@ -259,7 +319,7 @@ end
 function onPlayerChestPlace(event)
 	print("PlayerChestPlace");
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["placeObjects"] == false and tableContains(group["objectsPlaceFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
@@ -275,7 +335,7 @@ end
 function onPlayerChestRemove(event)
 	print("PlayerChestRemove");
 	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
+	if area then
 		local group = getPlayerGroupInArea(event.player, area);
 		if not group or (group["removeObjects"] == false and table.contains(group["objectsRemoveDestroyFilter"], tostring(event.objectTypeID)) == false) then
 			event:setCancel(true);
@@ -284,66 +344,6 @@ function onPlayerChestRemove(event)
 end
 --addEvent("PlayerChestRemove", onPlayerChestRemove);
 --addEvent("PlayerChestDestroy", onPlayerChestDestroy);
-
---- Player vegetation place event.
--- This event is triggered when the player places a vegetation (e.g. a sapling)
--- @param event The event object. Cancel the event to prevent the player from placing vegetations
-function onPlayerVegetationPlace(event)
-	print("PlayerVegetationPlace");
-	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
-		local group = getPlayerGroupInArea(event.player, area);
-		if not group or (group["placeVegetation"] == false) then
-			event:setCancel(true);
-		end
-	end
-end
---addEvent("PlayerVegetationPlace", onPlayerVegetationPlace);
-
---- Player vegetation destroy event.
--- This event is triggered when the player destroys vegetation (e.g. cut a tree).
--- @param event The event object. Cancel the event to prevent the player from destroying vegetations
-function onPlayerVegetationDestroy(event)
-	print("PlayerVegetationDestroy");
-	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
-		local group = getPlayerGroupInArea(event.player, area);
-		if not group or (group["removeVegetation"] == false) then
-			event:setCancel(true);
-		end
-	end
-end
---addEvent("PlayerVegetationDestroy", onPlayerVegetationDestroy);
-
---- Player vegetation pickup event.
--- This event is triggered when the player picks up vegetation (e.g. flowers).
--- @param event The event object. Cancel the event to prevent the player from picking up vegetations
-function onPlayerVegetationPickup(event)
-	print("PlayerVegetationPickup");
-	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.position.x, event.position.y, event.position.z);
-	if area ~= nil then
-		local group = getPlayerGroupInArea(event.player, area);
-		if not group or (group["pickupVegetation"] == false) then
-			event:setCancel(true);
-		end
-	end
-end
---addEvent("PlayerVegetationPickup", onPlayerVegetationPickup);
-
---- Player grass remove event.
--- This event is triggered when the player cuts grass.
--- @param event The event object. Cancel the event to prevent the player from cutting grass
-function onPlayerGrassRemove(event)
-	print("PlayerGrassRemove");
-	local area = getAreaAtPosition(event.chunkOffsetX, event.chunkOffsetY, event.chunkOffsetZ, event.blockPositionX, event.blockPositionY, event.blockPositionZ);
-	if area ~= nil then
-		local group = getPlayerGroupInArea(event.player, area);
-		if not group or (group["cutGrass"] == false) then
-			event:setCancel(true);
-		end
-	end
-end
---addEvent("PlayerGrassRemove", onPlayerGrassRemove);
 
 --- Move item from inventory to chest event.
 -- This event is triggered when an item is moved from the inventory into a chest.

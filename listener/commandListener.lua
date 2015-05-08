@@ -2,6 +2,8 @@ include("command-parser/parse-args.lua");
 
 
 local function showStateLabel(player, msg)
+	local label = player:getAttribute("areaStateLabel");
+
 	if msg then
     label:setText(i18n.t(player, msg));
     label:setVisible(true);
@@ -21,7 +23,7 @@ end
 
 
 local function areaSelect(event)
-	print("Selecting area");
+	--print("Selecting area");
 	event.player:enableMarkingSelector(function()
     showStateLabel(event.player, "select.start");
 	end);
@@ -29,17 +31,27 @@ end
 
 
 local function areaCancel(event)
-	print("Canceling selection");
+	--print("Canceling selection");
 	event.player:disableMarkingSelector(function (markingEvent)
 		showStateLabel();
 	end);
 end
 
 
-local function areaInfo(event)
+local function areaInfo(event, args)
 
-	-- TODO
+	-- TODO : args[1] may specify the area name to show info for
 
+	local areaId = event.player:getAttribute("areaId");
+	local area = areaId and areas[areaId];
+
+	if area then
+		print("Showing info for area ".. area["name"]);
+
+		for k,line in pairs(getAreaInfo(event.player, area)) do
+			event.player:sendTextMessage("[#8888FF]* ".. line);
+		end
+	end
 end
 
 
@@ -75,7 +87,7 @@ end
 
 local function areaRemove(event)
 	local areaId = event.player:getAttribute("areaId");
-	if areaId ~= nil then
+	if areaId then
 		if removeArea(areaId) == true then
 
 		  for key,player in pairs(server:getPlayers()) do
@@ -186,7 +198,7 @@ function onPlayerCommand(event)
 			elseif cmd == "hide" then
 				hideAllAreaBoundaries(event.player);
 			elseif cmd == "info" then
-				if checkPlayerAccess(event.player, "info") then areaInfo(event); end;
+				if checkPlayerAccess(event.player, "info") then areaInfo(event, table.slice(args, 3)); end;
 			elseif cmd == "select" then
 				if checkPlayerAccess(event.player, "select") then areaSelect(event); end;
 			elseif cmd == "cancel" then
