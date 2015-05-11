@@ -227,6 +227,8 @@ function updateCurrentArea(player)
       if table.contains(playerAreas, key) == false then
         if group and group["canEnter"] == false then
           -- TODO: if player is inside area (i.e. teleport), move player outside now
+
+          player:sendYellMessage(i18n.t(event.player, "area.enter.restricted"))
           return false;
         end
 
@@ -241,6 +243,8 @@ function updateCurrentArea(player)
 
       if group and group["canLeave"] == false then
         -- TODO: hurt player and/or push back??
+
+        player:sendYellMessage(i18n.t(event.player, "area.exit.restricted"))
         return false;
       else
         local stop = false;

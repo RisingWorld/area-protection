@@ -2,15 +2,38 @@
 # Locale for Area Protection script
 
 error.restricted=You don't have admin rights on this server.
-
+error.usage=Usage: /area %s %s
+error.missing.arg=Missing %s argument
+error.notinarea=You must enter an area first!
+error.unknown.command=Unknown command
+error.unknown.group=Unknown group
+error.unknown.player=Unknown player
 
 help.usage=All commands can display help. Ex: %s
 help.show.usage=Show all area boundaries.
 help.hide.usage=Hide all area boundaries.
-# ĥelp.info.usage=Show detailed information about an area.
+# ĥelp.info.usage=Show detailed information about an area or the current area.
 help.select.usage=Select an area to create.
 help.cancel.usage=Cancel any area selection in progress.
 help.create.usage=Create a new area specified by <areaname>.
 help.remove.usage=Remove the area currently active.
 help.grant.usage=Grant privileges to a user in the currently active area.
 help.revoke.usage=Revoke all privileges to a user in the currently active area.
+
+create.success=Area created successfully!
+create.error=Could not create area
+
+remove.success=Area removed successfully!
+remove.error=Could not remove area
+
+grant.success=Player has been granted successfully!
+grant.success.self=You have been granted successfully!
+grant.success.other=You have been granted access to %s as %s by %s
+grant.error=Could not grant player to the area
+
+revoke.success.self=You have been revoked successfully!
+revoke.success.other=You have been revoked access to %s by %s
+revoke.success=Player has been revoked successfully!
+
+area.enter.restricted=You cannot enter this area!
+area.exit.restricted=You cannot leave this area!

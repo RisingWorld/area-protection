@@ -42,7 +42,7 @@ local function areaHelp(event, args)
     event.player:sendTextMessage("[#33FF33]/area grant <".. table.concat(table.pluck(groups, "name"), '|') .."> [playername]");
     event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.grant.usage"));
   elseif helpContext == "revoke" then
-    event.player:sendTextMessage("[#33FF33]/area revoke");
+    event.player:sendTextMessage("[#33FF33]/area revoke [playername]");
     event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.revoke.usage"));
   else
   	-- TODO: insert "info" once areaInfo is working...
@@ -98,20 +98,19 @@ local function areaCreate(event, args, flags)
 				  	showAreaBoundaries(player, area);
 				  end
 
-					event.player:sendTextMessage("[#00FF00]Area created successfully!");
+					event.player:sendTextMessage("[#00FF00]"..i18n.t(event.player, "create.success"));
 
 					event.player:disableMarkingSelector(function (markingEvent)
 						showStateLabel();
 					end);
 				else
-					event.player:sendTextMessage("[#FF0000]Could not create area");
+					event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "create.error"));
 				end
   		end
 		end);
 	else
-		event.player:sendTextMessage("[#FF0000]Missing <name> argument");
+		event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.missing.arg", "<areaname>"));
 	end
-
 end
 
 
@@ -128,12 +127,12 @@ local function areaRemove(event)
 		  	updateCurrentArea(player);
 		  end
 
-		  event.player:sendTextMessage("[#00FF00]Area successfully removed!");
+		  event.player:sendTextMessage("[#00FF00]"..i18n.t(event.player, "remove.success"));
 		else
-			event.player:sendTextMessage("[#FF0000]Could not remove area");
+			event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "remove.error"));
 		end
 	else
-		event.player:sendTextMessage("[#FF0000]You must enter an area first!");
+		event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.notinarea"));
 	end
 end
 
@@ -148,9 +147,9 @@ local function areaGrant(event, args, flags)
 			local player = args[2] and server:findPlayerByName(args[2]) or event.player;
 
 			if not group then
-				event.player:sendTextMessage("[#FF0000]Unknown group");
+				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.unknown.group"));
 			elseif not player then
-				event.player:sendTextMessage("[#FF0000]Unknown player");
+				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.unknown.player"));
 			elseif grantPlayerRights(event.player, areas[areaId], player, group) then
 				print(event.player:getName() .." granted ".. group["name"] .." to area \"".. areas[areaId]["name"] .."\"");
 
@@ -158,19 +157,19 @@ local function areaGrant(event, args, flags)
 				updateAreaLabel(player);
 
 				if player:getDBID() == event.player:getDBID() then
-					event.player:sendTextMessage("[#00FF00]You have been granted successfully!");
+					event.player:sendTextMessage("[#00FF00]"..i18n.t(event.player, "grant.success.self"));
 				else
-					player:sendTextMessage("[#FFFF00]You have been granted access to [#8888FF]"..areas[areaId]["name"].."[#FFFF00] as [#8888FF]"..group["name"].."[#FFFF00] by [#FFFFFF]"..event.player:getName().."!");
-					event.player:sendTextMessage("[#00FF00]Player has been granted successfully!");
+					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "grant.success.other", "[#8888FF]"..areas[areaId]["name"].."[#FFFF00]", "[#8888FF]"..group["name"].."[#FFFF00]", "[#FFFFFF]"..event.player:getName()));
+					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "grant.success"));
 				end
 			else
-				event.player:sendTextMessage("[#FF0000]Could not grant player to the area");
+				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "grant.error"));
 			end
 		else
-			event.player:sendTextMessage("[#FF0000]You must enter an area first!");
+			event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.notinarea"));
 		end
 	else
-		event.player:sendTextMessage("[#FF0000]Usage: /area grant <group> [playername]");
+		event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.usage", "grant", "<group> [playername]"));
 	end
 end
 
@@ -183,7 +182,7 @@ local function areaRevoke(event, args, flags)
 			local player = args[1] and server:findPlayerByName(args[1]) or event.player;
 
 			if not player then
-				event.player:sendTextMessage("[#FF0000]Unknown player");
+				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.unknown.player"));
 			elseif revokePlayerRights(event.player, areas[areaId], player) then
 				print(event.player:getName() .." revoked ".. group["name"] .." to area \"".. areas[areaId]["name"] .."\"");
 
@@ -191,19 +190,19 @@ local function areaRevoke(event, args, flags)
 				updateAreaLabel(player);
 
 				if player:getDBID() == event.player:getDBID() then
-					event.player:sendTextMessage("[#00FF00]You have been revoked successfully!");
+					event.player:sendTextMessage("[#00FF00]"..i18n.t(event.player, "revoke.success.self"));
 				else
-					player:sendTextMessage("[#FFFF00]You have been revoked access to [#8888FF]"..areas[areaId]["name"].."[#FFFF00] as [#8888FF]"..group["name"].."[#FFFF00]!");
-					event.player:sendTextMessage("[#00FF00]Player has been granted successfully!");
+					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success.other"), "[#8888FF]"..areas[areaId]["name"].."[#FFFF00]", "[#FFFFFF]"..event.player:getName()));
+					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success"));
 				end
 			else
 
 			end
 		else
-			event.player:sendTextMessage("[#FF0000]You must enter an area first!");
+			event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.notinarea"));
 		end
 	else
-		event.player:sendTextMessage("[#FF0000]Usage: /area revoke <playername>|me");
+		event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.usage", "revoke", "[playername]"));
 	end
 end
 
@@ -249,7 +248,7 @@ function onPlayerCommand(event)
 			elseif cmd == "revoke" then
 				if checkPlayerAccess(event.player, "revoke") then areaRevoke(event, table.slice(args, 3), flags); end;
 			else
-				event.player:sendTextMessage("[#FF0000]Unknown command");
+				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.unknown.command"));
 			end
 		end
 	end

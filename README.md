@@ -67,19 +67,19 @@ In-game, in chat, type `/area <command>` where `<command>` is one of the followi
 * `hide` : hide all areas
 * `select` : start area selection  
 * `cancel` : cancel area selection
-* `create <areaname>` : create an area with the specified name from the current selection. If the area name contains many words, enclose it in double quotes.
+* `create <areaname>` : create an area with the specified name from the current selection. If the area name contains many words, enclose it in double quotes.  
   Ex: `/area create "My super fun zone!"`
 
-* `info [areaname]` : show information about an area. If `areaname` is not specified, the current area information is shown. If `areaname` contains spaces, enclose it in double quotes.
+* `info [areaname]` : show information about an area. If `areaname` is not specified, the current area information is shown. If `areaname` contains spaces, enclose it in double quotes.  
   Ex: `/area info "My super fun zone!"`
 
-* `remove` : remove the current area. For security reasons, the player must stand in the area to remove it.
+* `remove` : remove the current area. For security reasons, the player must stand in the area to remove it.  
   Ex: `/area remove`
 
-* `grant <group> [playername]` : grant permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permission.
+* `grant <group> [playername]` : grant permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permission.  
   Ex: `/area grant builder xSuperfrienDx`
 
-* `revoke [playername]` : revoke all permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permission.
+* `revoke [playername]` : revoke all permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permission.  
   Ex: `/area revoke xSuperfrienDx`
 
 
