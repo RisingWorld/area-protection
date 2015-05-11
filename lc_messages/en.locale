@@ -1,4 +1,16 @@
 # English
 # Locale for Area Protection script
 
-error.restricted=You don't have admin rights on this server. Request Admin rights or use /area cancel to cancel the selection.
+error.restricted=You don't have admin rights on this server.
+
+
+help.usage=All commands can display help. Ex: %s
+help.show.usage=Show all area boundaries.
+help.hide.usage=Hide all area boundaries.
+# ĥelp.info.usage=Show detailed information about an area.
+help.select.usage=Select an area to create.
+help.cancel.usage=Cancel any area selection in progress.
+help.create.usage=Create a new area specified by <areaname>.
+help.remove.usage=Remove the area currently active.
+help.grant.usage=Grant privileges to a user in the currently active area.
+help.revoke.usage=Revoke all privileges to a user in the currently active area.

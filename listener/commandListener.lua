@@ -15,15 +15,44 @@ end
 
 
 local function areaHelp(event, args)
-	print("Show help");
+  local helpContext = string.lower(args[1] or "");
 
-	-- TODO
-
+  if helpContext == "show" then
+    event.player:sendTextMessage("[#33FF33]/area show");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.show.usage"));
+  elseif helpContext == "hide" then
+    event.player:sendTextMessage("[#33FF33]/area hide");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.hide.usage"));
+  --elseif helpContext == "info" then
+  --  event.player:sendTextMessage("[#33FF33]/area info [areaname]");
+  --  event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.info.usage"));
+  elseif helpContext == "select" then
+    event.player:sendTextMessage("[#33FF33]/area select");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.select.usage"));
+  elseif helpContext == "cancel" then
+    event.player:sendTextMessage("[#33FF33]/area cancel");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.cancel.usage"));
+  elseif helpContext == "create" then
+    event.player:sendTextMessage("[#33FF33]/area create <areaname>");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.create.usage"));
+  elseif helpContext == "remove" then
+    event.player:sendTextMessage("[#33FF33]/area remove");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.remove.usage"));
+  elseif helpContext == "grant" then
+    event.player:sendTextMessage("[#33FF33]/area grant <".. table.concat(table.pluck(groups, "name"), '|') .."> [playername]");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.grant.usage"));
+  elseif helpContext == "revoke" then
+    event.player:sendTextMessage("[#33FF33]/area revoke");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.revoke.usage"));
+  else
+  	-- TODO: insert "info" once areaInfo is working...
+    event.player:sendTextMessage("[#33FF33]/area help|show|hide|select|cancel|create|remove|grant|revoke [args]");
+    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.usage", "/area help create"));
+  end
 end
 
 
 local function areaSelect(event)
-	--print("Selecting area");
 	event.player:enableMarkingSelector(function()
     showStateLabel(event.player, "select.start");
 	end);
@@ -31,7 +60,6 @@ end
 
 
 local function areaCancel(event)
-	--print("Canceling selection");
 	event.player:disableMarkingSelector(function (markingEvent)
 		showStateLabel();
 	end);
@@ -46,7 +74,7 @@ local function areaInfo(event, args)
 	local area = areaId and areas[areaId];
 
 	if area then
-		print("Showing info for area ".. area["name"]);
+		print("Showing info for area ".. area["name"].. " to ".. event.player:getName());
 
 		for k,line in pairs(getAreaInfo(event.player, area)) do
 			event.player:sendTextMessage("[#8888FF]* ".. line);
@@ -63,6 +91,8 @@ local function areaCreate(event, args, flags)
 
 				if createdAreaId then
 				  local area = areas[createdAreaId];
+
+				  print(event.player:getName() .." created area \"".. area["name"] .."\"");
 
 				  for key,player in pairs(server:getPlayers()) do
 				  	showAreaBoundaries(player, area);
@@ -88,7 +118,10 @@ end
 local function areaRemove(event)
 	local areaId = event.player:getAttribute("areaId");
 	if areaId then
+		local areaName = areas[areaId]["name"];
+
 		if removeArea(areaId) == true then
+			print(event.player:getName() .." removed area \"".. area["name"] .."\"");
 
 		  for key,player in pairs(server:getPlayers()) do
 		  	hideAreaBoundaries(player, areaId);
@@ -119,13 +152,15 @@ local function areaGrant(event, args, flags)
 			elseif not player then
 				event.player:sendTextMessage("[#FF0000]Unknown player");
 			elseif grantPlayerRights(event.player, areas[areaId], player, group) then
+				print(event.player:getName() .." granted ".. group["name"] .." to area \"".. areas[areaId]["name"] .."\"");
+
 				showAreaBoundaries(player, areas[areaId]);
 				updateAreaLabel(player);
 
 				if player:getDBID() == event.player:getDBID() then
 					event.player:sendTextMessage("[#00FF00]You have been granted successfully!");
 				else
-					player:sendTextMessage("[#FFFF00]You have been granted access to [#8888FF]"..areas[areaId]["name"].."[#FFFF00] as [#8888FF]"..group["name"].."[#FFFF00] by [#FFFFFF]"..event.player.getName().."!");
+					player:sendTextMessage("[#FFFF00]You have been granted access to [#8888FF]"..areas[areaId]["name"].."[#FFFF00] as [#8888FF]"..group["name"].."[#FFFF00] by [#FFFFFF]"..event.player:getName().."!");
 					event.player:sendTextMessage("[#00FF00]Player has been granted successfully!");
 				end
 			else
@@ -150,7 +185,9 @@ local function areaRevoke(event, args, flags)
 			if not player then
 				event.player:sendTextMessage("[#FF0000]Unknown player");
 			elseif revokePlayerRights(event.player, areas[areaId], player) then
-				showAreaBoundaries(player, areas[areaId]);
+				print(event.player:getName() .." revoked ".. group["name"] .." to area \"".. areas[areaId]["name"] .."\"");
+
+				hideAreaBoundaries(player, areas[areaId]);
 				updateAreaLabel(player);
 
 				if player:getDBID() == event.player:getDBID() then
@@ -181,7 +218,6 @@ end
 -- as well as the player (event.player).
 function onPlayerCommand(event)
 	local args, flags = parseArgs(event.command);
-	local cmd;
 
   if #args >= 1 then
 
@@ -189,7 +225,7 @@ function onPlayerCommand(event)
       -- command handled
       event:setCancel(true);
 
-      cmd = string.lower(args[2] or "");
+      local cmd = string.lower(args[2] or "");
 
       if cmd == "help" then
       	areaHelp(event, table.slice(args, 3));
@@ -197,8 +233,9 @@ function onPlayerCommand(event)
 				showAllAreaBoundaries(event.player);
 			elseif cmd == "hide" then
 				hideAllAreaBoundaries(event.player);
-			elseif cmd == "info" then
-				if checkPlayerAccess(event.player, "info") then areaInfo(event, table.slice(args, 3)); end;
+			--- Note working right now, missing some API...
+			--elseif cmd == "info" then
+			--	if checkPlayerAccess(event.player, "info") then areaInfo(event, table.slice(args, 3)); end;
 			elseif cmd == "select" then
 				if checkPlayerAccess(event.player, "select") then areaSelect(event); end;
 			elseif cmd == "cancel" then
