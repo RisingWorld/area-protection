@@ -4,7 +4,7 @@ areas = {};
 -- The base area id value when calling player:createArea
 local baseAreaId = 1000000;
 
-local DEFAULT_AREA_COLOR = Color.new(0, 1, 1); -- white
+local DEFAULT_AREA_COLOR = Color.new(0, 0.1, 0.5); -- grey
 
 
 
@@ -14,12 +14,12 @@ local DEFAULT_AREA_COLOR = Color.new(0, 1, 1); -- white
 -- @return The color as a number (0xRRGGBBAA)
 local function getAreaColor(player, area)
   local group = getPlayerGroupInArea(player, area);
-  local hueOffset = math.random(-10, 10);  -- delta angle in degrees
-  local lightness = 0.8 + (math.random() * 0.4); -- multiplier (pivot = 1.0)
-  local a = math.random(90, 120);   -- 0 .. 255
+  local hueOffset = math.random(-20, 20);  -- delta angle in degrees
+  local lightness = 0.7 + (math.random() * 0.6); -- multiplier (pivot = 1.0)
+  local a = math.random(90, 190);   -- 0 .. 255
 
   --local r1, g1, b1 = group["areaColor"]:toRGB();
-  local color = group and group["areaColor"]:hueOffset(hueOffset):lightenBy(lightness) or DEFAULT_AREA_COLOR;
+  local color = (group and group["areaColor"] or DEFAULT_AREA_COLOR):hueOffset(hueOffset):lightenBy(lightness);
   local r, g, b = color:toRGB();
 
   --print("Get area color "..

@@ -184,15 +184,15 @@ local function areaRevoke(event, args, flags)
 			if not player then
 				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.unknown.player"));
 			elseif revokePlayerRights(event.player, areas[areaId], player) then
-				print(event.player:getName() .." revoked ".. group["name"] .." to area \"".. areas[areaId]["name"] .."\"");
+				print(event.player:getName() .." revoked \"".. areas[areaId]["name"] .."\" from area");
 
-				hideAreaBoundaries(player, areas[areaId]);
+				hideAreaBoundaries(player, areaId);
 				updateAreaLabel(player);
 
 				if player:getDBID() == event.player:getDBID() then
 					event.player:sendTextMessage("[#00FF00]"..i18n.t(event.player, "revoke.success.self"));
 				else
-					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success.other"), "[#8888FF]"..areas[areaId]["name"].."[#FFFF00]", "[#FFFFFF]"..event.player:getName()));
+					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success.other", "[#8888FF]"..areas[areaId]["name"].."[#FFFF00]", "[#FFFFFF]"..event.player:getName()));
 					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success"));
 				end
 			else
