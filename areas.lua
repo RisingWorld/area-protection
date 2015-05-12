@@ -87,6 +87,25 @@ local function adjustAreaPositions(area)
 end
 
 
+--- Returns true if any point of area 1 is inside area 2
+-- @param a1 The area id 1
+-- @param a2 The area id 2
+-- @return True if any point of area 1 is inside area 2
+local function areaComparator(a1, a2)
+  local area1 = areas[a1];
+  local area2 = areas[a2];
+
+  return AreaUtils:isPointInArea3D(area1["startChunkpositionX"], area1["startChunkpositionY"], area1["startChunkpositionZ"], area1["startBlockpositionX"], area1["startBlockpositionY"], area1["startBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["endChunkpositionX"], area1["endChunkpositionY"], area1["endChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["startChunkpositionX"], area1["endChunkpositionY"], area1["startChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["endChunkpositionX"], area1["startChunkpositionY"], area1["endChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["startChunkpositionX"], area1["endChunkpositionY"], area1["endChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["endChunkpositionX"], area1["endChunkpositionY"], area1["startChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["startChunkpositionX"], area1["startChunkpositionY"], area1["endChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]) or
+         AreaUtils:isPointInArea3D(area1["endChunkpositionX"], area1["startChunkpositionY"], area1["startChunkpositionZ"], area1["endBlockpositionX"], area1["endBlockpositionY"], area1["endBlockpositionZ"], area2["startChunkpositionX"], area2["startChunkpositionY"], area2["startChunkpositionZ"], area2["startBlockpositionX"], area2["startBlockpositionY"], area2["startBlockpositionZ"], area2["endChunkpositionX"], area2["endChunkpositionY"], area2["endChunkpositionZ"], area2["endBlockpositionX"], area2["endBlockpositionY"], area2["endBlockpositionZ"]);
+end
+
+
 --- Load all areas from the database and store them in the global areas object
 function loadAreas()
   local result = database:query("SELECT * FROM areas;");
@@ -221,27 +240,28 @@ function updateCurrentArea(player)
 
   for key,value in pairs(areas) do
     local group = getPlayerGroupInArea(player, area);
+    local isPlayerArea = table.contains(playerAreas, key);
+    local isInside = AreaUtils:isPointInArea3D(player:getPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]);
 
-    if AreaUtils:isPointInArea3D(player:getPosition(), value["startChunkpositionX"], value["startChunkpositionY"], value["startChunkpositionZ"], value["startBlockpositionX"], value["startBlockpositionY"], value["startBlockpositionZ"], value["endChunkpositionX"], value["endChunkpositionY"], value["endChunkpositionZ"], value["endBlockpositionX"], value["endBlockpositionY"], value["endBlockpositionZ"]) then
+    if isPlayerArea == false and isInside == true then
 
-      if table.contains(playerAreas, key) == false then
-        if group and group["canEnter"] == false then
-          -- TODO: if player is inside area (i.e. teleport), move player outside now
+      if group and group["canEnter"] == false then
+        -- TODO: if player is inside area (i.e. teleport), move player outside now
 
-          player:sendYellMessage(i18n.t(event.player, "area.enter.restricted"))
-          return false;
-        end
-
-        -- entering area
-        areaId = key;
-        areaChanged = true;
-        table.insert(playerAreas, key); -- push area on top of stack
+        player:sendYellMessage(i18n.t(event.player, "area.enter.restricted"))
+        return false;
       end
 
-    elseif areaId and (areaId == key) then
+      -- entering area
+      areaId = key;
+      areaChanged = true;
+      table.insert(playerAreas, key); -- push area on top of stack
+      table.sort(playerAreas, areaComparator);
+
+    elseif isPlayerArea == true and isInside == false then
       -- we moved out of the current area
 
-      if group and group["canLeave"] == false then
+      if (areaId == key) and group and (group["canLeave"] == false) then
         -- TODO: hurt player and/or push back??
 
         player:sendYellMessage(i18n.t(event.player, "area.exit.restricted"))
@@ -262,6 +282,7 @@ function updateCurrentArea(player)
           end
         end
       end
+
     end
   end
 
