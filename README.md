@@ -34,7 +34,7 @@ Download the Zip file for the [i18n](https://github.com/RisingWorld/i18n/archive
 
 Download the Zip file for the [command parser](https://github.com/RisingWorld/command-parser/archive/master.zip) sub-module, and extract it inside the `command-parser` folder of this script.
 
-Download the Zip file for the [table-ext](https://github.com/RisingWorld/table-ext/archive/master.zip) sub-module, and extract it inside the `table-ext` folder of this script.
+Download the Zip file for the [string-ext](https://github.com/RisingWorld/string-ext/archive/master.zip) sub-module, and extract it inside the `string-ext` folder of this script.
 
 
 ## Updating
@@ -76,10 +76,10 @@ In-game, in chat, type `/area <command>` where `<command>` is one of the followi
 * `remove` : remove the current area. For security reasons, the player must stand in the area to remove it.  
   Ex: `/area remove`
 
-* `grant <group> [playername]` : grant permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permission.  
+* `grant <group> [playername]` : grant permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permissions.  
   Ex: `/area grant builder xSuperfrienDx`
 
-* `revoke [playername]` : revoke all permissions to the specified player in the current area. For security reasons, the player must stand in the area to grant permissions. If no player name is given, then the current player is granted permission.  
+* `revoke [playername]` : revoke all permissions to the specified player in the current area. For security reasons, the player must stand in the area to revoke permissions. If no player name is given, then the current player gets it's own permissions revoked.  
   Ex: `/area revoke xSuperfrienDx`
 
 
