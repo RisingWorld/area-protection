@@ -106,6 +106,18 @@ local function areaComparator(a1, a2)
 end
 
 
+--- Check that the given area is within other areas where the player has the
+--- rights to create areas
+-- @param player The player creating the area
+-- @param area The area to validate
+-- @return True if the area can be created, false otherwise
+local function canCreateArea(player, area)
+  -- TODO : check if the specified area is entirely within areas that the player
+  --        can create into
+  return player:isAdmin();
+end
+
+
 --- Load all areas from the database and store them in the global areas object
 function loadAreas()
   local result = database:query("SELECT * FROM areas;");
@@ -210,15 +222,18 @@ function createArea(event, name)
   adjustAreaPositions(area);
   calculateGlobalAreaPosition(area);
 
-  database:queryupdate("INSERT INTO areas (name, startChunkpositionX, startChunkpositionY, startChunkpositionZ, startBlockpositionX, startBlockpositionY, startBlockpositionZ, endChunkpositionX, endChunkpositionY, endChunkpositionZ, endBlockpositionX, endBlockpositionY, endBlockpositionZ, createdBy, createdAt, modifiedBy, modifiedAt) VALUES ('".. string.sub(event.command, 13) .."', '".. area["startChunkpositionX"] .."', '".. area["startChunkpositionY"] .."', '".. area["startChunkpositionZ"] .."', '".. area["startBlockpositionX"] .."', '".. area["startBlockpositionY"] .."', '".. area["startBlockpositionZ"] .."', '".. area["endChunkpositionX"] .."', '".. area["endChunkpositionY"] .."', '".. area["endChunkpositionZ"] .."', '".. area["endBlockpositionX"] .."', '".. area["endBlockpositionY"] .."', '".. area["endBlockpositionZ"] .."', '".. playerId .."', CURRENT_TIMESTAMP, '".. playerId .."', CURRENT_TIMESTAMP)");
+  if canCreateArea(event.player, area) then
 
-  local insertID = database:getLastInsertID();
+    database:queryupdate("INSERT INTO areas (name, startChunkpositionX, startChunkpositionY, startChunkpositionZ, startBlockpositionX, startBlockpositionY, startBlockpositionZ, endChunkpositionX, endChunkpositionY, endChunkpositionZ, endBlockpositionX, endBlockpositionY, endBlockpositionZ, createdBy, createdAt, modifiedBy, modifiedAt) VALUES ('".. name .."', '".. area["startChunkpositionX"] .."', '".. area["startChunkpositionY"] .."', '".. area["startChunkpositionZ"] .."', '".. area["startBlockpositionX"] .."', '".. area["startBlockpositionY"] .."', '".. area["startBlockpositionZ"] .."', '".. area["endChunkpositionX"] .."', '".. area["endChunkpositionY"] .."', '".. area["endChunkpositionZ"] .."', '".. area["endBlockpositionX"] .."', '".. area["endBlockpositionY"] .."', '".. area["endBlockpositionZ"] .."', '".. playerId .."', CURRENT_TIMESTAMP, '".. playerId .."', CURRENT_TIMESTAMP)");
 
-  area["id"] = insertID;
+    local insertID = database:getLastInsertID();
 
-  areas[insertID] = area;
+    area["id"] = insertID;
 
-  return insertID;
+    areas[insertID] = area;
+
+    return insertID;
+  end
 end
 
 
@@ -319,13 +334,18 @@ end
 --- Remove the specified area from the world
 -- @param areaId  The id of the area to remove
 -- @return True
-function removeArea(areaId)
-  database:queryupdate("DELETE FROM areas WHERE id='" .. areaId .. "'");
-  database:queryupdate("DELETE FROM rights WHERE areaId= '" .. areaId .. "'");
+function removeArea(player, areaId)
+  if player:isAdmin() then
 
-  areas[areaId] = nil;
+    database:queryupdate("DELETE FROM areas WHERE id='" .. areaId .. "'");
+    database:queryupdate("DELETE FROM rights WHERE areaId= '" .. areaId .. "'");
 
-  return true;
+    areas[areaId] = nil;
+
+    return true;
+  end
+
+  return false;
 end
 
 

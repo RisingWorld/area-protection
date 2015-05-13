@@ -15,11 +15,12 @@ help.hide.usage=Hide all area boundaries.
 # ĥelp.info.usage=Show detailed information about an area or the current area.
 help.select.usage=Select an area to create.
 help.cancel.usage=Cancel any area selection in progress.
-help.create.usage=Create a new area specified by <areaname>.
+help.create.usage=Create a new area specified by <areaname>. For long area names, enclose with double quotes ("). For example : /area create "My super area!"
 help.remove.usage=Remove the area currently active.
 help.grant.usage=Grant privileges to a user in the currently active area.
 help.revoke.usage=Revoke all privileges to a user in the currently active area.
 
+create.start=Select the area to create. Type "/area help" for more information.
 create.success=Area created successfully!
 create.error=Could not create area
 

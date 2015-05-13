@@ -9,8 +9,8 @@ include("db.lua");
 include("groups.lua");
 include("rights.lua");
 include("areas.lua");
-include("security.lua");
 include("table-ext/table-ext.lua");
+include("string-ext/string-ext.lua");
 include("listener/playerListener.lua");
 include("listener/commandListener.lua");
 

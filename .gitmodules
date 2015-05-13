@@ -7,3 +7,6 @@
 [submodule "i18n"]
 	path = i18n
 	url = https://github.com/RisingWorld/i18n
+[submodule "string-ext"]
+	path = string-ext
+	url = https://github.com/RisingWorld/string-ext

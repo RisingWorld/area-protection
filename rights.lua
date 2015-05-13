@@ -29,17 +29,25 @@ end
 -- @param group   The group the target player is being assigned
 -- @return True if the player as successfully assigned
 function grantPlayerRights(player, area, targetPlayer, group)
-  -- revoke any rights, first (prevent duplicate entries)
-  revokePlayerRights(player, area, targetPlayer);
+  local playerGroup = getPlayerGroupInArea(player, area);
 
-  area["rights"][targetPlayer:getDBID()] = {
-    group      = group,
-    assignedBy = player:getDBID(),
-    assignedAt = os.time()
-  };
+  if player:isAdmin() or (playerGroup and table.contains(playerGroup["group"]["assignableGroups"], group["name"])) then
 
-  return database:queryupdate("INSERT INTO rights (areaId, playerId, groupName, assignedBy, assignedAt) "..
-    "VALUES (".. area["id"] ..", ".. targetPlayer:getDBID() ..", '".. group["name"] .. "', ".. player:getDBID() ..", CURRENT_TIMESTAMP)");
+    -- revoke any rights, first (prevent duplicate entries)
+    if revokePlayerRights(player, area, targetPlayer) then
+
+      area["rights"][targetPlayer:getDBID()] = {
+        group      = group,
+        assignedBy = player:getDBID(),
+        assignedAt = os.time()
+      };
+
+      return database:queryupdate("INSERT INTO rights (areaId, playerId, groupName, assignedBy, assignedAt) "..
+        "VALUES (".. area["id"] ..", ".. targetPlayer:getDBID() ..", '".. group["name"] .. "', ".. player:getDBID() ..", CURRENT_TIMESTAMP)");
+    end
+  end
+
+  return false;
 end
 
 
@@ -49,8 +57,16 @@ end
 -- @param targetPlayer  The player who's rights are being revoked
 -- @return True if all rights have been revoked.
 function revokePlayerRights(player, area, targetPlayer)
-  area["rights"][targetPlayer:getDBID()] = nil;
+  local playerGroup = getPlayerGroupInArea(player, area);
+  local targetPlayerGroup = getPlayerGroupInArea(targetPlayer, area);
 
-  return database:queryupdate("DELETE FROM rights "..
-    "WHERE areaId = ".. area["id"] .." AND playerId = ".. targetPlayer:getDBID());
+  if player:isAdmin() or (playerGroup and targetPlayerGroup and table.contains(playerGroup["group"]["assignableGroups"], targetPlayerGroup["group"]["name"])) then
+
+    area["rights"][targetPlayer:getDBID()] = nil;
+
+    return database:queryupdate("DELETE FROM rights "..
+      "WHERE areaId = ".. area["id"] .." AND playerId = ".. targetPlayer:getDBID());
+  end
+
+  return false;
 end
