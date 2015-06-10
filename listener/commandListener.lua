@@ -27,11 +27,11 @@ local function areaHelp(event, args)
     for k,line in pairs(string.wrap(i18n.t(event.player, "help.hide.usage"), 80)) do
       event.player:sendTextMessage("[#FFFF00]"..line);
     end
-  --elseif helpContext == "info" then
-  --  event.player:sendTextMessage("[#33FF33]/area info [areaname]");
-  --  for k,line in pairs(string.wrap(i18n.t(event.player, "help.create.usage"), 80)) do
-  --    event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.info.usage"));
-  --  end
+  elseif helpContext == "info" then
+    event.player:sendTextMessage("[#33FF33]/area info [areaname]");
+    for k,line in pairs(string.wrap(i18n.t(event.player, "help.info.usage"), 80)) do
+      event.player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "help.info.usage"));
+    end
   elseif helpContext == "select" then
     event.player:sendTextMessage("[#33FF33]/area select");
     for k,line in pairs(string.wrap(i18n.t(event.player, "help.select.usage"), 80)) do
@@ -60,6 +60,11 @@ local function areaHelp(event, args)
   elseif helpContext == "revoke" then
     event.player:sendTextMessage("[#33FF33]/area revoke [playername]");
     for k,line in pairs(string.wrap(i18n.t(event.player, "help.revoke.usage"), 80)) do
+      event.player:sendTextMessage("[#FFFF00]"..line);
+    end
+  elseif helpContext == "reset" then
+    event.player:sendTextMessage("[#33FF33]/area reset [".. table.concat(table.pluck(groups, "name"), '|') .."] ...");
+    for k,line in pairs(string.wrap(i18n.t(event.player, "help.reset.usage"), 80)) do
       event.player:sendTextMessage("[#FFFF00]"..line);
     end
   else
@@ -97,7 +102,7 @@ local function areaInfo(event, args)
 		print("Showing info for area ".. area["name"].. " to ".. event.player:getName());
 
 		for k,line in pairs(getAreaInfo(event.player, area)) do
-			event.player:sendTextMessage("[#8888FF]* ".. line);
+			event.player:sendTextMessage("[#88AAFF]* ".. line);
 		end
 	end
 end
@@ -216,7 +221,7 @@ local function areaRevoke(event, args, flags)
 					player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success"));
 				end
 			else
-
+        event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "revoke.error"));
 			end
 		else
 			event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.notinarea"));
@@ -226,6 +231,44 @@ local function areaRevoke(event, args, flags)
 	end
 end
 
+
+local function areaReset(event, args, flags)
+  local areaId = event.player:getAttribute("areaId");
+
+  if areaId then
+    local revokedAllPlayers = {};
+
+    for i = 1, #args do;
+      local revokedPlayers = revokeAllRights(event.player, areas[areaId], args[1]);
+
+      if revokePlayers then
+        table.insertAll(revokedAllPlayers, revokePlayers);
+      end
+    end
+
+    if #revokedAllPlayers > 0 then
+      -- notify any connected player
+      for i,player in pairs(server:getPlayers()) do
+        if table.contains(revokedAllPlayers, player:getDBID()) then
+          if player:getDBID() == event.player:getDBID() then
+            event.player:sendTextMessage("[#00FF00]"..i18n.t(event.player, "revoke.success.self"));
+          else
+            player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success.other", "[#8888FF]"..areas[areaId]["name"].."[#FFFF00]", "[#FFFFFF]"..event.player:getName()));
+            player:sendTextMessage("[#FFFF00]"..i18n.t(event.player, "revoke.success"));
+          end
+        end
+      end
+
+      for k,line in pairs(string.wrap(i18n.t(event.player, "reset.success", table.concat(revokedAllPlayers, ",")), 80)) do
+        event.player:sendTextMessage("[#FFFF00]"..line);
+      end
+    else
+      event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "reset.error"));
+    end
+  else
+    event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.notinarea"));
+  end
+end
 
 
 --- Player command event.
@@ -252,9 +295,8 @@ function onPlayerCommand(event)
 				showAllAreaBoundaries(event.player);
 			elseif cmd == "hide" then
 				hideAllAreaBoundaries(event.player);
-			--- Note working right now, missing some API...
-			--elseif cmd == "info" then
-			--	areaInfo(event, table.slice(args, 3));
+			elseif cmd == "info" then
+				areaInfo(event, table.slice(args, 3));
 			elseif cmd == "select" then
 				areaSelect(event);
 			elseif cmd == "cancel" then
@@ -267,6 +309,8 @@ function onPlayerCommand(event)
 				areaGrant(event, table.slice(args, 3), flags);
 			elseif cmd == "revoke" then
 				areaRevoke(event, table.slice(args, 3), flags);
+      elseif cmd == "reset" then
+        areaReset(event, table.slice(args, 3), flags);
 			else
 				event.player:sendTextMessage("[#FF0000]"..i18n.t(event.player, "error.unknown.command"));
 			end

@@ -42,6 +42,10 @@ function grantPlayerRights(player, area, targetPlayer, group)
         assignedAt = os.time()
       };
 
+      -- make sure we cleanup first!
+      database:queryupdate("DELETE FROM rights "..
+        "WHERE areaId = ".. area["id"] .." AND playerId = ".. targetPlayer:getDBID());
+
       return database:queryupdate("INSERT INTO rights (areaId, playerId, groupName, assignedBy, assignedAt) "..
         "VALUES (".. area["id"] ..", ".. targetPlayer:getDBID() ..", '".. group["name"] .. "', ".. player:getDBID() ..", CURRENT_TIMESTAMP)");
     end
@@ -69,4 +73,34 @@ function revokePlayerRights(player, area, targetPlayer)
   end
 
   return false;
+end
+
+
+--- Revoke all rights to a given group in the specified area
+-- @param player     The player who's revoking all rights
+-- @param area       The target area
+-- @param groupName  The group name that is being revoked
+-- @return table     A table of all user IDs revoked
+function revokeAllRights(player, area, groupName)
+  local playerGroup = getPlayerGroupInArea(player, area);
+  local group = getGroupByName(groupName);
+  local playersRemoved = {};
+
+  if player:isAdmin() or (playerGroup and group and table.contains(playerGroup["group"]["assignableGroups"], group["name"])) then
+    for targetPlayerDBID,targetGroup in pairs(area["rights"]) do
+      if targetGroup["name"] == group["name"] then
+        table.insert(playersRemoved, targetPlayerDBID);
+      end
+    end
+  end
+
+  for i = 1, #playersRemoved do
+    area["rights"][playersRemoved] = nil;
+  end
+
+  -- cleanup
+  database:queryupdate("DELETE FROM rights "..
+      "WHERE areaId = ".. area["id"] .." AND playerId IN (".. table.concat(playersRemoved, ",") ..")");
+
+  return playersRemoved;
 end

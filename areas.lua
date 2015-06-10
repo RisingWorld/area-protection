@@ -34,6 +34,13 @@ local function getAreaColor(player, area)
 end
 
 
+local function getPlayerName(bdid)
+  local playerInfo = bdid and server:getPlayerInformationFromDB(bdid);
+
+  return playerInfo and playerInfo.name or (bdid and ("?Player#"..bdid) or "???");
+end
+
+
 --- Calculates the "global" start- and endposition of an area.
 -- @param area The area object
 local function calculateGlobalAreaPosition(area)
@@ -453,21 +460,18 @@ function getAreaInfo(player, area)
   -- TODO: fix this damn piece of code
   -- TODO: restrict amount of information based on player group in the area
 
-  local areaCreatedBy = server:findPlayerByID(area["createdBy"]); --- return nil ????
   local areaCreatedAt = area["createdAt"] and os.date("%Y-%m-%d", area["createdAt"]) or "n/a";
 
   local info = {
-    "\"".. area["name"] .."\" was created on ".. areaCreatedAt .." by ".. areaCreatedBy:getName()
+    "\"".. area["name"] .."\" was created on ".. areaCreatedAt .." by ".. getPlayerName(area["createdBy"])
   };
 
   for playerId,areaGroup in pairs(area["rights"]) do
-    local assignedPlayer = server:findPlayerByID(playerId):getName();   --- ERROR calling getName() on nil ????
-    local assignedByPlayer = areaGroup["assignedBy"] and server:findPlayerByID(areaGroup["assignedBy"]):getName() or "n/a";
     local assignedDate = areaGroup["assignedAt"] and os.date("%Y-%m-%d", areaGroup["assignedAt"]) or "n/a";
 
     -- TODO : do not show by who or when if the player is member of a "lesser" group
 
-    table.insert(info, assignedPlayer["name"] .." was granted ".. areaGroup["group"]["name"] .." by ".. assignedByPlayer["name"] .." on ".. assignedDate);
+    table.insert(info, getPlayerName(playerId) .." was granted ".. areaGroup["group"]["name"] .." by ".. getPlayerName(areaGroup["assignedBy"]) .." on ".. assignedDate);
   end
 
   return info;
